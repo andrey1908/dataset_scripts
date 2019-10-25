@@ -67,9 +67,8 @@ def cvat_root_to_coco_dict(root):
             annotation = dict()
             annotation["iscrowd"] = 0
             annotation["image_id"] = int(image.attrib["id"])
-            # annotation["segmentation"]
-            lolkek = cvat_segmentation_to_coco(polygon.attrib["points"])
-            annotation["bbox"] = segmentation_to_bbox(lolkek)  # (annotation["segmentation"])
+            annotation["segmentation"] = cvat_segmentation_to_coco(polygon.attrib["points"])
+            annotation["bbox"] = segmentation_to_bbox(annotation["segmentation"])
             annotation["area"] = annotation["bbox"][2] * annotation["bbox"][3]
             annotation["category_id"] = class_to_idx[polygon.attrib["label"]]
             annotation["id"] = idx
