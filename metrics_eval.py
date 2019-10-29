@@ -315,7 +315,7 @@ def get_optimal_score_threshold(metrics, classes, iouThrs=0.5):
 
 def print_metrics(annotations_file, detections_file, area=(0**2, 1e5**2)):
     if area[1] == -1:
-        area[1] = 1e5**2
+        area = (area[0], 1e5**2)
     metrics = evaluate_detections(annotations_file, detections_file, area)
     classes = get_classes(metrics)
     AP = extract_AP(metrics, classes)
