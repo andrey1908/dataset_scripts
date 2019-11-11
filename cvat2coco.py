@@ -37,7 +37,7 @@ def cvat_root_to_coco_dict(root):
     for label in labels:
         category = {"id": idx, "name": label[0].text}
         categories.append(category)
-        class_to_idx[label[0].text] = idx
+        class_to_idx[label.find('name').text] = idx
         idx += 1
 
     # get images and annotations
@@ -94,7 +94,7 @@ def cvat2coco_file(xml_file, out_file, detections_only=False):
 def cvat2coco_folder(xml_folder, out_folder, detections_only=False):
     xml_files = os.listdir(xml_folder)
     for xml_file in xml_files:
-        out_file = xml_file[:-3] + 'json'
+        out_file = xml_file.split('.')[0] + '.json'
         cvat2coco_file(os.path.join(xml_folder, xml_file), os.path.join(out_folder, out_file), detections_only)
 
 

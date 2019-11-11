@@ -7,11 +7,11 @@ import numpy as np
 
 def build_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-kitti', '--kitti_folder', required=True, type=str, help='where kitti dataset is')
-    parser.add_argument('-split', '--split_rate', required=True, type=float, help='percentage (from 0 to 1)'
+    parser.add_argument('-kitti-fld', '--kitti-folder', required=True, type=str, help='where kitti dataset is')
+    parser.add_argument('-out', '--out-file', required=True, type=str)
+    parser.add_argument('-split', '--split-rate', type=float, default=1, help='percentage (from 0 to 1)'
                                                                              ' of training images')
-    parser.add_argument('-ann_fld', '--annotations_folder', required=True, type=str, help='where to save converted'
-                                                                                          ' annotation files')
+    parser.add_argument('-val-out', '--val-out-file', type=str)
     return parser
 
 
@@ -120,14 +120,15 @@ def save_annotations(out_file, images, annotations, categories):
         json.dump(json_dict, f)
 
 
-def kitti2coco(kitti_folder, split_rate, annotations_folder):
+def kitti2coco(kitti_folder, out_file, split_rate=1., val_out_file=None):
     assert 0 <= split_rate <= 1
     train_images, val_images, image_name_to_id = get_images(os.path.join(kitti_folder, 'image_2'), split_rate)
     categories, category_name_to_id = get_categories(os.path.join(kitti_folder, 'label_2'))
     train_annotations, val_annotations = get_annotations(os.path.join(kitti_folder, 'label_2'), train_images,
                                                          val_images, image_name_to_id, category_name_to_id)
-    save_annotations(os.path.join(annotations_folder, 'train.json'), train_images, train_annotations, categories)
-    save_annotations(os.path.join(annotations_folder, 'val.json'), val_images, val_annotations, categories)
+    save_annotations(out_file, train_images, train_annotations, categories)
+    if val_out_file is not None:
+        save_annotations(val_out_file, val_images, val_annotations, categories)
 
 
 if __name__ == '__main__':
