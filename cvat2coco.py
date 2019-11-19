@@ -1,15 +1,18 @@
-import os
 import xml.etree.ElementTree as xml
 import json
 import argparse
 import re
+import copy
 
 
 def build_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-xml', '--xml-file', type=str, required=True)
     parser.add_argument('-out', '--out-file', type=str, required=True)
-    parser.add_argument('-det_only', '--detections-only', action='store_true')
+    group1 = parser.add_mutually_exclusive_group()
+    group1.add_argument('-dets', '--detections', action='store_true')
+    group1.add_argument('-imgs-info', '--images-info', action='store_true')
+    parser.add_argument('-shortened-file-names', '--shortened-file-names', action='store_true')
     return parser
 
 
@@ -18,14 +21,41 @@ def cvat_segmentation_to_coco(cvat_segmentation):
     return coco_segmentation
 
 
-def segmentation_to_bbox(segmentation):
+def segmentation_to_bbox(segmentation):  # json segmentation
+    segmentation = segmentation[0]
     x = segmentation[0::2]
     y = segmentation[1::2]
     bbox = [min(x), min(y), max(x)-min(x), max(y)-min(y)]
     return bbox
 
 
-def cvat_root_to_coco_dict(root):
+def shorten_file_names(images_to_shorten):
+    images = copy.deepcopy(images_to_shorten)
+    if len(images) == 0:
+        return images
+    if len(images) == 1:
+        images[0]['file_name'] = images[0]['file_name'].split('/')[-1]
+        return images
+    splitted_file_name = images[0]['file_name'].split('/')
+    shortening_deep = len(splitted_file_name)-1
+    if shortening_deep == 0:
+        return
+    for image in images[1:]:
+        splitted_prev_file_name = splitted_file_name
+        splitted_file_name = image['file_name'].split('/')
+        for i in range(shortening_deep):
+            if splitted_file_name[i] != splitted_prev_file_name[i]:
+                shortening_deep = i
+                if shortening_deep == 0:
+                    return images
+                break
+    for image in images:
+        image['file_name'] = '/'.join(image['file_name'].split('/')[shortening_deep:])
+    return images
+
+
+def cvat_root_to_coco_dict(root, detections=False, images_info=False, shortened_file_names=False):
+    assert (not detections) or (not images_info)
     images = []
     annotations = []
     categories = []
@@ -77,16 +107,21 @@ def cvat_root_to_coco_dict(root):
             annotations.append(annotation)
             idx += 1
 
-    json_dict = {'images': images, 'annotations': annotations, 'categories': categories}
+    if shortened_file_names:
+        images = shorten_file_names(images)
+    if detections:
+        json_dict = {annotations}
+    elif images_info:
+        json_dict = {'images': images, 'categories': categories}
+    else:
+        json_dict = {'images': images, 'annotations': annotations, 'categories': categories}
     return json_dict
 
 
-def cvat2coco(xml_file, out_file, detections_only=False):
+def cvat2coco(xml_file, out_file, detections=False, images_info=False, shortened_file_names=False):
     tree = xml.parse(xml_file)
     root = tree.getroot()
-    json_dict = cvat_root_to_coco_dict(root)
-    if detections_only:
-        json_dict = json_dict['annotations']
+    json_dict = cvat_root_to_coco_dict(root, detections, images_info, shortened_file_names)
     with open(out_file, 'w') as f:
         json.dump(json_dict, f, indent=2)
 
