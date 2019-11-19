@@ -238,26 +238,118 @@ def extract_AP(metrics, classes, iouThrs=0.5):
     APs = []
     area = 'custom'
     maxDet = 100
-    for iouThr in iouThrs:
-        APs_iouThr = []
-        for cl in classes:
+    for cl in classes:
+        APs_cl = []
+        for iouThr in iouThrs:
             cl_idxes = [idx for idx, value in enumerate(metrics['class']) if value == cl]
             area_idxes = [idx for idx, value in enumerate(metrics['area']) if value == area and idx in cl_idxes]
             maxDet_idxes = [idx for idx, value in enumerate(metrics['maxDet']) if value == maxDet and idx in area_idxes]
             iouThr_idxes = [idx for idx, value in enumerate(metrics['iouThr']) if value == iouThr and idx in maxDet_idxes]
             assert len(iouThr_idxes) == 1
             idx = iouThr_idxes[0]
-            APs_iouThr.append(metrics['AP'][idx])
-        APs.append(APs_iouThr)
+            APs_cl.append(metrics['AP'][idx])
+        APs.append(APs_cl)
 
-    if iouThrs_type in (float, int):
-        APs = APs[0]
     if classes_type in (str,):
-        if iouThrs_type in (float, int):
+        APs = APs[0]
+    if iouThrs_type in (float, int):
+        if classes_type in (str,):
             APs = APs[0]
         else:
             APs = [APs[i][0] for i in range(len(APs))]
     return APs
+
+
+def extract_precision(metrics, classes, iouThrs=0.5, scoreThrs=0.5):
+    iouThrs_type = type(iouThrs)
+    if iouThrs_type in (float, int):
+        iouThrs = (iouThrs,)
+    classes_type = type(classes)
+    if classes_type in (str,):
+        classes = (classes,)
+    scoreThrs_type = type(scoreThrs)
+    if scoreThrs_type in (float, int):
+        scoreThrs = (scoreThrs,)
+
+    permitted_iouThrs = (0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95)
+    for iouThr in iouThrs:
+        assert iouThr in permitted_iouThrs
+    existing_scoreThrs = np.linspace(.0, 1.00, np.round((1.00 - .0) / .01) + 1, endpoint=True)
+
+    precisions = []
+    area = 'custom'
+    maxDet = 100
+    for cl in classes:
+        precisions_cl = []
+        for iouThr in iouThrs:
+            precisions_iouThr = []
+            cl_idxes = [idx for idx, value in enumerate(metrics['class']) if value == cl]
+            area_idxes = [idx for idx, value in enumerate(metrics['area']) if value == area and idx in cl_idxes]
+            maxDet_idxes = [idx for idx, value in enumerate(metrics['maxDet']) if value == maxDet and idx in area_idxes]
+            iouThr_idxes = [idx for idx, value in enumerate(metrics['iouThr']) if
+                            value == iouThr and idx in maxDet_idxes]
+            assert len(iouThr_idxes) == 1
+            idx = iouThr_idxes[0]
+            for scoreThr in scoreThrs:
+                i = abs(existing_scoreThrs - scoreThr).argmin()
+                precisions_iouThr.append(metrics['precision'][idx][i])
+            precisions_cl.append(precisions_iouThr)
+        precisions.append(precisions_cl)
+
+    # if classes_type in (str,):
+    #     precisions = precisions[0]
+    # if iouThrs_type in (float, int):
+    #     if classes_type in (str,):
+    #         precisions = precisions[0]
+    #     else:
+    #         precisions = [precisions[i][0] for i in range(len(precisions))]
+    return precisions
+
+
+def extract_recall(metrics, classes, iouThrs=0.5, scoreThrs=0.5):
+    iouThrs_type = type(iouThrs)
+    if iouThrs_type in (float, int):
+        iouThrs = (iouThrs,)
+    classes_type = type(classes)
+    if classes_type in (str,):
+        classes = (classes,)
+    scoreThrs_type = type(scoreThrs)
+    if scoreThrs_type in (float, int):
+        scoreThrs = (scoreThrs,)
+
+    permitted_iouThrs = (0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95)
+    for iouThr in iouThrs:
+        assert iouThr in permitted_iouThrs
+    existing_scoreThrs = np.linspace(.0, 1.00, np.round((1.00 - .0) / .01) + 1, endpoint=True)
+
+    recalls = []
+    area = 'custom'
+    maxDet = 100
+    for cl in classes:
+        recalls_cl = []
+        for iouThr in iouThrs:
+            recalls_iouThr = []
+            cl_idxes = [idx for idx, value in enumerate(metrics['class']) if value == cl]
+            area_idxes = [idx for idx, value in enumerate(metrics['area']) if value == area and idx in cl_idxes]
+            maxDet_idxes = [idx for idx, value in enumerate(metrics['maxDet']) if value == maxDet and idx in area_idxes]
+            iouThr_idxes = [idx for idx, value in enumerate(metrics['iouThr']) if
+                            value == iouThr and idx in maxDet_idxes]
+            assert len(iouThr_idxes) == 1
+            idx = iouThr_idxes[0]
+            for scoreThr in scoreThrs:
+                i = abs(existing_scoreThrs - scoreThr).argmin()
+                recalls_iouThr.append(metrics['recall'][idx][i])
+            recalls_cl.append(recalls_iouThr)
+        recalls.append(recalls_cl)
+
+    # if classes_type in (str,):
+    #     precisions = precisions[0]
+    # if iouThrs_type in (float, int):
+    #     if classes_type in (str,):
+    #         precisions = precisions[0]
+    #     else:
+    #         precisions = [precisions[i][0] for i in range(len(precisions))]
+    return recalls
 
 
 def get_optimal_score_threshold(metrics, classes, iouThrs=0.5):
@@ -318,12 +410,24 @@ def print_metrics(annotations_file, detections_file, area=(0**2, 1e5**2)):
         area = (area[0], 1e5**2)
     metrics = evaluate_detections(annotations_file, detections_file, area)
     classes = get_classes(metrics)
-    AP = extract_AP(metrics, classes)
-    mAP = extract_mAP(metrics, iouThrs=0.5)
+    AP = extract_AP(metrics, classes, iouThrs=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95])
+    mAP = extract_mAP(metrics, iouThrs=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95])
+    recall = extract_recall(metrics, classes, iouThrs=0.5, scoreThrs=0.5)
+    precision = extract_precision(metrics, classes, iouThrs=0.5, scoreThrs=0.5)
     for i in range(len(classes)):
-        print('{:15} {}'.format(classes[i], AP[i]))
+        print('{:15} {}'.format(classes[i], AP[i][0]))
     print('')
-    print('{:15} {}'.format('mAP', mAP))
+    print('{:15} {}'.format('mAP', mAP[0]))
+
+    print('\n')
+    for i in range(len(classes)):
+        print('{:15} {}'.format('(mean) ' + classes[i], sum(AP[i])/len(AP[i])))
+    print('')
+    print('{:15} {}'.format('mean mAP', sum(mAP)/len(mAP)))
+
+    print('\n')
+    for i in range(len(classes)):
+        print('{:15} {}'.format('(F1) ' + classes[i], 2/(1/recall[i][0][0] + 1/precision[i][0][0])))
 
 
 if __name__ == "__main__":
