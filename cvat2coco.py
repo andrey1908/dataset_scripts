@@ -14,7 +14,7 @@ def build_parser():
 
 
 def cvat_segmentation_to_coco(cvat_segmentation):
-    coco_segmentation = [float(x) for x in re.split(',|;', cvat_segmentation)]
+    coco_segmentation = [[float(x) for x in re.split(',|;', cvat_segmentation)]]
     return coco_segmentation
 
 
