@@ -59,7 +59,15 @@ def coco_dict_to_cvat_root(json_dict, reindex_images=False):
         img = xml.SubElement(annotations, "image", xml_image)
         for ann_idx in image_id_to_anns_idxs[json_image['id']]:
             json_ann = json_dict['annotations'][ann_idx]
-            if 'segmentation' not in json_ann.keys():
+            if 'segmentation' in json_ann.keys():
+                xml_ann = dict()
+                xml_ann['label'] = category_id_to_name[json_ann['category_id']]
+                xml_ann['occluded'] = '0'
+                xml_ann['points'] = coco_segmentation_to_cvat(json_ann['segmentation'])
+                if 'score' in json_ann.keys():
+                    xml_ann['score'] = str(json_ann['score'])
+                xml.SubElement(img, 'polygon', xml_ann)
+            else:
                 xml_ann = dict()
                 xml_ann['label'] = category_id_to_name[json_ann['category_id']]
                 xml_ann['occluded'] = '0'
@@ -70,14 +78,6 @@ def coco_dict_to_cvat_root(json_dict, reindex_images=False):
                 if 'score' in json_ann.keys():
                     xml_ann['score'] = str(json_ann['score'])
                 xml.SubElement(img, 'box', xml_ann)
-            else:
-                xml_ann = dict()
-                xml_ann['label'] = category_id_to_name[json_ann['category_id']]
-                xml_ann['occluded'] = '0'
-                xml_ann['points'] = coco_segmentation_to_cvat(json_ann['segmentation'])
-                if 'score' in json_ann.keys():
-                    xml_ann['score'] = str(json_ann['score'])
-                xml.SubElement(img, 'polygon', xml_ann)
     return annotations
 
 
