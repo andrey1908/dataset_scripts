@@ -68,7 +68,7 @@ def correct_annotations(coco_file, out_file):
 
     json_dict = {'images': images, 'annotations': annotations, 'categories': categories}
     with open(out_file, 'w') as f:
-        json.dump(json_dict, f)
+        json.dump(json_dict, f, indent=2)
 
 
 if __name__ == '__main__':
