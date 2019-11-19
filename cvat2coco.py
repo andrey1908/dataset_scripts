@@ -7,9 +7,9 @@ import re
 
 def build_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-xml', '--xml_path', type=str, required=True)
-    parser.add_argument('-out', '--out_path', type=str, required=True)
-    parser.add_argument('-det_only', '--detections_only', action='store_true')
+    parser.add_argument('-xml', '--xml-file', type=str, required=True)
+    parser.add_argument('-out', '--out-file', type=str, required=True)
+    parser.add_argument('-det_only', '--detections-only', action='store_true')
     return parser
 
 
@@ -81,7 +81,7 @@ def cvat_root_to_coco_dict(root):
     return json_dict
 
 
-def cvat2coco_file(xml_file, out_file, detections_only=False):
+def cvat2coco(xml_file, out_file, detections_only=False):
     tree = xml.parse(xml_file)
     root = tree.getroot()
     json_dict = cvat_root_to_coco_dict(root)
@@ -89,22 +89,6 @@ def cvat2coco_file(xml_file, out_file, detections_only=False):
         json_dict = json_dict['annotations']
     with open(out_file, 'w') as f:
         json.dump(json_dict, f)
-
-
-def cvat2coco_folder(xml_folder, out_folder, detections_only=False):
-    xml_files = os.listdir(xml_folder)
-    for xml_file in xml_files:
-        out_file = xml_file.split('.')[0] + '.json'
-        cvat2coco_file(os.path.join(xml_folder, xml_file), os.path.join(out_folder, out_file), detections_only)
-
-
-def cvat2coco(xml_path, out_path, detections_only=False):
-    if os.path.isfile(xml_path):
-        cvat2coco_file(xml_path, out_path, detections_only)
-    else:
-        if not os.path.exists(out_path):
-            os.mkdir(out_path)
-        cvat2coco_folder(xml_path, out_path, detections_only)
 
 
 if __name__ == '__main__':
