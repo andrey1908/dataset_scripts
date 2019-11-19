@@ -330,6 +330,4 @@ if __name__ == "__main__":
     parser = build_parser()
     args = parser.parse_args()
     args.area = list(map(eval, args.area))
-    if args.area[1] == -1:
-        args.area[1] = 1e5 ** 2
     print_metrics(**vars(args))
