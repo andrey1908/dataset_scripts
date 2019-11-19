@@ -4,18 +4,18 @@ import json
 
 def build_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-coco', '--coco-file', required=True, type=str)
+    parser.add_argument('-json', '--json-file', required=True, type=str)
     parser.add_argument('-out', '--out-file', required=True, type=str)
     return parser
 
 
 def get_new_categories(old_categories):
-    new_categories = [{"supercategory": "none", "id": 1, "name": "traffic_sign"},
+    new_categories = [{"supercategory": "none", "id": 1, "name": "stop_sign"},
                       {"supercategory": "none", "id": 2, "name": "car"},
                       {"supercategory": "none", "id": 3, "name": "truck"},
                       {"supercategory": "none", "id": 4, "name": "person"},
                       {"supercategory": "none", "id": 5, "name": "traffic_light"}]
-    old_category_name_to_new_id = {'1.22': 1, '1.23': 1, '2.4': 1, '2.5': 1, '3.1': 1, '3.2': 1, '3.24': 1, '3.4': 1, '5.19': 1, 'other': 1, 'stop_sign': 1, 'car': 2, 'truck': 3, 'person': 4, 'traffic_light': 5}
+    old_category_name_to_new_id = {'person': 4, 'car': 2, 'truck': 3, 'traffic light': 5, 'stop sign': 1}
     old_category_id_to_new = dict()
     for old_category in old_categories:
         if old_category['name'] in old_category_name_to_new_id.keys():
@@ -53,8 +53,8 @@ def get_new_images(images, used_images_id, start_id=0):
     return new_images, old_image_id_to_new
 
 
-def correct_annotations(coco_file, out_file):
-    with open(coco_file, 'r') as f:
+def correct_annotations(json_file, out_file):
+    with open(json_file, 'r') as f:
         json_dict = json.load(f)
     images = json_dict['images']
     annotations = json_dict['annotations']
