@@ -29,6 +29,7 @@ def get_classes_from_json(json_file, out_file=None, separator=' '):
     with open(json_file, 'r') as f:
         json_dict = json.load(f)
     categories = json_dict['categories']
+    categories = list(zip(*sorted(zip([category['id'] for category in categories], categories))))[1]
     classes = list()
     for category in categories:
         classes.append(category['name'])
