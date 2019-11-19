@@ -7,8 +7,8 @@ from xml.dom import minidom
 
 def build_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-json', '--json_path', type=str, required=True)
-    parser.add_argument('-out', '--out_path', type=str, required=True)
+    parser.add_argument('-json', '--json-file', type=str, required=True)
+    parser.add_argument('-out', '--out-file', type=str, required=True)
     parser.add_argument('-reindex-images', '--reindex-images', action='store_true')
     return parser
 
@@ -82,7 +82,7 @@ def coco_dict_to_cvat_root(json_dict, reindex_images=False):
     return annotations
 
 
-def coco2cvat_file(json_file, out_file, reindex_images=False):
+def coco2cvat(json_file, out_file, reindex_images=False):
     with open(json_file, 'r') as f:
         json_dict = json.load(f)
     root = coco_dict_to_cvat_root(json_dict, reindex_images)
@@ -90,22 +90,6 @@ def coco2cvat_file(json_file, out_file, reindex_images=False):
     reparsed = minidom.parseString(rough_string)
     with open(out_file, "w") as f:
         f.writelines(reparsed.toprettyxml(indent='  '))
-
-
-def coco2cvat_folder(json_folder, out_folder, reindex_images=False):
-    json_files = os.listdir(json_folder)
-    for json_file in json_files:
-        out_file = json_file.split('.')[0] + '.xml'
-        coco2cvat_file(os.path.join(json_folder, json_file), os.path.join(out_folder, out_file), reindex_images)
-
-
-def coco2cvat(json_path, out_path, reindex_images=False):
-    if os.path.isfile(json_path):
-        coco2cvat_file(json_path, out_path, reindex_images)
-    else:
-        if not os.path.exists(out_path):
-            os.mkdir(out_path)
-        coco2cvat_folder(json_path, out_path, reindex_images)
 
 
 if __name__ == '__main__':
