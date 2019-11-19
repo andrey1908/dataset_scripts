@@ -88,7 +88,7 @@ def cvat2coco(xml_file, out_file, detections_only=False):
     if detections_only:
         json_dict = json_dict['annotations']
     with open(out_file, 'w') as f:
-        json.dump(json_dict, f)
+        json.dump(json_dict, f, indent=2)
 
 
 if __name__ == '__main__':
