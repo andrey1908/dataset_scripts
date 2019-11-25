@@ -10,7 +10,7 @@ def build_parser():
     parser.add_argument('-xml', '--xml-file', type=str, required=True)
     parser.add_argument('-out', '--out-file', type=str, required=True)
     group1 = parser.add_mutually_exclusive_group()
-    group1.add_argument('-dets', '--detections', action='store_true')
+    group1.add_argument('-dets-only', '--detections-only', action='store_true')
     group1.add_argument('-imgs-info', '--images-info', action='store_true')
     parser.add_argument('-shortened-file-names', '--shortened-file-names', action='store_true')
     return parser
@@ -54,8 +54,8 @@ def shorten_file_names(images_to_shorten):
     return images
 
 
-def cvat_root_to_coco_dict(root, detections=False, images_info=False, shortened_file_names=False):
-    assert (not detections) or (not images_info)
+def cvat_root_to_coco_dict(root, detections_only=False, images_info=False, shortened_file_names=False):
+    assert (not detections_only) or (not images_info)
     images = []
     annotations = []
     categories = []
@@ -109,7 +109,7 @@ def cvat_root_to_coco_dict(root, detections=False, images_info=False, shortened_
 
     if shortened_file_names:
         images = shorten_file_names(images)
-    if detections:
+    if detections_only:
         json_dict = {annotations}
     elif images_info:
         json_dict = {'images': images, 'categories': categories}
@@ -118,10 +118,10 @@ def cvat_root_to_coco_dict(root, detections=False, images_info=False, shortened_
     return json_dict
 
 
-def cvat2coco(xml_file, out_file, detections=False, images_info=False, shortened_file_names=False):
+def cvat2coco(xml_file, out_file, detections_only=False, images_info=False, shortened_file_names=False):
     tree = xml.parse(xml_file)
     root = tree.getroot()
-    json_dict = cvat_root_to_coco_dict(root, detections, images_info, shortened_file_names)
+    json_dict = cvat_root_to_coco_dict(root, detections_only, images_info, shortened_file_names)
     with open(out_file, 'w') as f:
         json.dump(json_dict, f, indent=2)
 
