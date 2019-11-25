@@ -43,16 +43,19 @@ def coco_dict_to_cvat_root(json_dict, reindex_images=False):
     for i in range(len(json_dict['annotations'])):
         image_id = json_dict['annotations'][i]['image_id']
         image_id_to_anns_idxs[image_id].append(i)
+
     if reindex_images:
-        json_dict['images'] = list(zip(*sorted(zip([json_dict['images'][i]['file_name'] for i in range(len(json_dict['images']))], json_dict['images']))))[1]
-        image_id = 0
-    for json_image in json_dict['images']:
+        images_names = [json_dict['images'][i]['file_name'] for i in range(len(json_dict['images']))]
+        images_order = list(zip(*sorted(zip(images_names, list(range(len(images_names)))))))[1]
+    else:
+        images_order = list(range(len(json_dict['images'])))
+
+    image_id = 0
+    for i in images_order:
+        json_image = json_dict['images'][i]
         xml_image = dict()
-        if reindex_images:
-            xml_image['id'] = str(image_id)
-            image_id += 1
-        else:
-            xml_image['id'] = str(json_image['id'])
+        xml_image['id'] = str(image_id)
+        image_id += 1
         xml_image['name'] = json_image['file_name']
         xml_image['width'] = str(json_image['width'])
         xml_image['height'] = str(json_image['height'])
