@@ -217,7 +217,6 @@ def extract_mAP(metrics, iouThrs=0.5):
     for iouThr in iouThrs:
         mAP = indexed.loc[(area, maxDet)].reset_index().set_index(["area", "maxDet", "iouThr"]).loc[(area, maxDet, iouThr)]["AP"].mean()
         mAPs.append(mAP)
-
     if iouThrs_type in (float, int):
         mAPs = mAPs[0]
     return mAPs
@@ -248,15 +247,11 @@ def extract_AP(metrics, classes, iouThrs=0.5):
             assert len(iouThr_idxes) == 1
             idx = iouThr_idxes[0]
             APs_cl.append(metrics['AP'][idx])
+        if iouThrs_type in (float, int):
+            APs_cl = APs_cl[0]
         APs.append(APs_cl)
-
     if classes_type in (str,):
         APs = APs[0]
-    if iouThrs_type in (float, int):
-        if classes_type in (str,):
-            APs = APs[0]
-        else:
-            APs = [APs[i][0] for i in range(len(APs))]
     return APs
 
 
@@ -410,24 +405,28 @@ def print_metrics(annotations_file, detections_file, area=(0**2, 1e5**2)):
         area = (area[0], 1e5**2)
     metrics = evaluate_detections(annotations_file, detections_file, area)
     classes = get_classes(metrics)
-    AP = extract_AP(metrics, classes, iouThrs=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95])
-    mAP = extract_mAP(metrics, iouThrs=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95])
-    recall = extract_recall(metrics, classes, iouThrs=0.5, scoreThrs=0.5)
-    precision = extract_precision(metrics, classes, iouThrs=0.5, scoreThrs=0.5)
-    for i in range(len(classes)):
-        print('{:15} {}'.format(classes[i], AP[i][0]))
+    iouThrs=[0.5, 0.7, 0.9]
+    APs = extract_AP(metrics, classes, iouThrs)
+    mAPs = extract_mAP(metrics, iouThrs)
+    print('IOU mAP')
+    for mAP, iouThr in zip(mAPs, iouThrs):
+        print('{:3} {:10}'.format(iouThr, mAP))
     print('')
-    print('{:15} {}'.format('mAP', mAP[0]))
+    
+    print('traffic_light')
+    idx = classes.index('traffic_light')
+    print('IOU AP')
+    for AP, iouThr in zip(APs[idx], iouThrs):
+        print('{:3} {:10}'.format(iouThr, AP))
+    print('\nfor test')
+    mAP70 = extract_mAP(metrics, 0.70)
+    print('mAP70 = {}'.format(mAP70))
+    AP70 = extract_AP(metrics, 'traffic_light', 0.70)
+    print('AP70 = {}'.format(AP70))
 
-    print('\n')
-    for i in range(len(classes)):
-        print('{:15} {}'.format('(mean) ' + classes[i], sum(AP[i])/len(AP[i])))
-    print('')
-    print('{:15} {}'.format('mean mAP', sum(mAP)/len(mAP)))
-
-    print('\n')
-    for i in range(len(classes)):
-        print('{:15} {}'.format('(F1) ' + classes[i], 2/(1/recall[i][0][0] + 1/precision[i][0][0])))
+    recall = extract_precision(metrics, 'traffic_light', [0.5, 0.70, 0.85, 0.95], [0.1, 0.7])
+    print('recall = {} {}'.format(recall[0][0][0], recall[0][1][0]))
+    print(recall)
 
 
 if __name__ == "__main__":
