@@ -21,6 +21,17 @@ def coco_segmentation_to_cvat(coco_segmentation):
     return cvat_segmentation
 
 
+def set_between(x, a, b):
+    da = x - a
+    db = x - b
+    if da * db <= 0:
+        return x
+    if abs(da) < abs(db):
+        return a
+    else:
+        return b
+
+
 def coco_dict_to_cvat_root(json_dict, reindex_images=False):
     annotations = xml.Element("annotations")
     meta = xml.SubElement(annotations, "meta")
@@ -74,10 +85,10 @@ def coco_dict_to_cvat_root(json_dict, reindex_images=False):
                 xml_ann = dict()
                 xml_ann['label'] = category_id_to_name[json_ann['category_id']]
                 xml_ann['occluded'] = '0'
-                xml_ann['xtl'] = str(json_ann['bbox'][0])
-                xml_ann['ytl'] = str(json_ann['bbox'][1])
-                xml_ann['xbr'] = str(json_ann['bbox'][0] + json_ann['bbox'][2])
-                xml_ann['ybr'] = str(json_ann['bbox'][1] + json_ann['bbox'][3])
+                xml_ann['xtl'] = str(set_between(json_ann['bbox'][0], 0, json_image['width']))
+                xml_ann['ytl'] = str(set_between(json_ann['bbox'][1], 0, json_image['height']))
+                xml_ann['xbr'] = str(set_between(json_ann['bbox'][0] + json_ann['bbox'][2], 0, json_image['width']))
+                xml_ann['ybr'] = str(set_between(json_ann['bbox'][1] + json_ann['bbox'][3], 0, json_image['height']))
                 if 'score' in json_ann.keys():
                     xml_ann['score'] = str(json_ann['score'])
                 xml.SubElement(img, 'box', xml_ann)
@@ -98,3 +109,4 @@ if __name__ == '__main__':
     parser = build_parser()
     args = parser.parse_args()
     coco2cvat(**vars(args))
+
