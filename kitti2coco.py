@@ -7,42 +7,28 @@ import numpy as np
 
 def build_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-kitti-fld', '--kitti-folder', required=True, type=str, help='where kitti dataset is')
-    parser.add_argument('-out', '--out-file', required=True, type=str)
-    parser.add_argument('-split', '--split-rate', type=float, default=1, help='percentage (from 0 to 1)'
-                                                                             ' of training images')
-    parser.add_argument('-val-out', '--val-out-file', type=str)
+    parser.add_argument('-kitti', '--kitti-folder', required=True, type=str, help='where kitti dataset is')
+    parser.add_argument('-out', '--out-file', required=True, type=str, help='where to save converted'
+                                                                                          ' annotation file')
     return parser
 
 
-def get_images(images_folder, split_rate=None, start_id=0):
-    train_images = list()
-    val_images = list()
+def get_images(images_folder, start_id=0):
+    images = list()
     image_files = os.listdir(images_folder)
-    np.random.shuffle(image_files)
+    sorted(image_files)
     num = len(image_files)
-    train_num = int(num * split_rate)
     image_name_to_id = dict()
 
     idx = start_id
-    for image_file in image_files[:train_num]:
+    for image_file in image_files:
         im = Image.open(os.path.join(images_folder, image_file))
         width, height = im.size
         image = {'file_name': image_file, 'width': width, 'height': height, 'id': idx}
-        train_images.append(image)
+        images.append(image)
         image_name_to_id[image_file] = idx
         idx += 1
-
-    idx = start_id
-    for image_file in image_files[train_num:]:
-        im = Image.open(os.path.join(images_folder, image_file))
-        width, height = im.size
-        image = {'file_name': image_file, 'width': width, 'height': height, 'id': idx}
-        val_images.append(image)
-        image_name_to_id[image_file] = idx
-        idx += 1
-
-    return train_images, val_images, image_name_to_id
+    return images, image_name_to_id
 
 
 def get_categories(annotations_folder, start_id=1):
@@ -63,13 +49,11 @@ def get_categories(annotations_folder, start_id=1):
     return categories, category_name_to_id
 
 
-def get_annotations(annotations_folder, train_images, val_images, image_name_to_id, category_name_to_id, start_id=0):
-    train_annotations = list()
-    val_annotations = list()
-
+def get_annotations(annotations_folder, images, image_name_to_id, category_name_to_id, start_id=0):
+    annotations = list()
     idx = start_id
-    for train_image in train_images:
-        image_path = train_image['file_name']
+    for image in images:
+        image_path = image['file_name']
         image_name = image_path.split('/')[-1]
         annotation_file = image_name[:-3] + 'txt'
         with open(os.path.join(annotations_folder, annotation_file), 'r') as f:
@@ -86,52 +70,23 @@ def get_annotations(annotations_folder, train_images, val_images, image_name_to_
             image_id = image_name_to_id[image_name]
             annotation = {'area': area, 'iscrowd': 0, 'bbox': bbox, 'id': idx, 'image_id': image_id,
                           'category_id': category_id}
-            train_annotations.append(annotation)
+            annotations.append(annotation)
             idx += 1
-
-    idx = start_id
-    for val_image in val_images:
-        image_path = val_image['file_name']
-        image_name = image_path.split('/')[-1]
-        annotation_file = image_name[:-3] + 'txt'
-        with open(os.path.join(annotations_folder, annotation_file), 'r') as f:
-            lines = f.readlines()
-        for line in lines:
-            bbox_info = line.split(' ')
-            category_name = bbox_info[0]
-            if category_name == 'DontCare':
-                continue
-            category_id = category_name_to_id[category_name]
-            xtl, ytl, xbr, ybr = float(bbox_info[4]), float(bbox_info[5]), float(bbox_info[6]), float(bbox_info[7])
-            bbox = [xtl, ytl, xbr - xtl, ybr - ytl]
-            area = bbox[2] * bbox[3]
-            image_id = image_name_to_id[image_name]
-            annotation = {'area': area, 'iscrowd': 0, 'bbox': bbox, 'id': idx, 'image_id': image_id,
-                          'category_id': category_id}
-            val_annotations.append(annotation)
-            idx += 1
-
-    return train_annotations, val_annotations
+    return annotations
 
 
-def save_annotations(out_file, images, annotations, categories):
-    json_dict = {'images': images, 'annotations': annotations, 'categories': categories}
-    with open(out_file, 'w') as f:
-        json.dump(json_dict, f)
-
-
-def kitti2coco(kitti_folder, out_file, split_rate=1., val_out_file=None):
-    assert 0 <= split_rate <= 1
-    train_images, val_images, image_name_to_id = get_images(os.path.join(kitti_folder, 'image_2'), split_rate)
+def kitti2coco(kitti_folder):
+    images, image_name_to_id = get_images(os.path.join(kitti_folder, 'image_2'))
     categories, category_name_to_id = get_categories(os.path.join(kitti_folder, 'label_2'))
-    train_annotations, val_annotations = get_annotations(os.path.join(kitti_folder, 'label_2'), train_images,
-                                                         val_images, image_name_to_id, category_name_to_id)
-    save_annotations(out_file, train_images, train_annotations, categories)
-    if val_out_file is not None:
-        save_annotations(val_out_file, val_images, val_annotations, categories)
+    annotations = get_annotations(os.path.join(kitti_folder, 'label_2'), images, image_name_to_id, category_name_to_id)
+    json_dict = {'images': images, 'annotations': annotations, 'categories': categories}
+    return json_dict
 
 
 if __name__ == '__main__':
     parser = build_parser()
     args = parser.parse_args()
-    kitti2coco(**vars(args))
+    json_dict = kitti2coco(args.kitti_folder)
+    with open(args.out_file, 'w') as f:
+        json.dump(json_dict, f, indent=2)
+
