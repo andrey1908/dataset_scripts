@@ -11,6 +11,7 @@ def build_parser():
     parser.add_argument('-img-fld', '--images-folder', required=True, type=str)
     parser.add_argument('-cls', '--classes', nargs='+', type=str)
     parser.add_argument('-out-fld', '--out-folder', required=True, type=str)
+    parser.add_argument('-log', '--log-file', type=str)
     return parser
 
 
@@ -54,6 +55,7 @@ def preprocess_box(box, im_w, im_h):
 
 
 def crop_boxes(json_dict, images_folder, classes, out_folder):
+    log = list()
     image_id_to_annotations_idxs = get_image_id_to_annotations_idxs(json_dict['images'], json_dict['annotations'])
     category_id_to_name = get_category_id_to_name(json_dict['categories'])
     boxes_counters = dict()
@@ -71,6 +73,7 @@ def crop_boxes(json_dict, images_folder, classes, out_folder):
             os.makedirs(os.path.join(out_folder, category['name']), exist_ok=True)
 
     for image in tqdm(json_dict['images']):
+        log_image = {'original_file_name': image['file_name'], 'crops': list()}
         im = Image.open(os.path.join(images_folder, image['file_name']))
         annotations_idxs = image_id_to_annotations_idxs[image['id']]
         for annotation_idx in annotations_idxs:
@@ -85,7 +88,12 @@ def crop_boxes(json_dict, images_folder, classes, out_folder):
                 continue
             croped = im.crop(tuple(box))
             croped.save(os.path.join(out_folder, cat_name, '{}.png'.format(boxes_counters[cat_id])))
+            log_crop = {'cropped_file_name': os.path.join(cat_name, '{}.png'.format(boxes_counters[cat_id])),
+                        'box': box}  # xtl, ytl, xbr, ybr
+            log_image['crops'].append(log_crop)
             boxes_counters[cat_id] += 1
+        log.append(log_image)
+    return log
 
 
 if __name__ == '__main__':
@@ -93,5 +101,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open(args.json_file, 'r') as f:
         json_dict = json.load(f)
-    crop_boxes(json_dict, args.images_folder, args.classes, args.out_folder)
+    log = crop_boxes(json_dict, args.images_folder, args.classes, args.out_folder)
+    if args.log_file is not None:
+        with open(args.log_file, 'w') as f:
+            json.dump(log, f, indent = 2)
 
