@@ -17,12 +17,10 @@ def build_parser():
 
 def get_image_id_to_annotations_idxs(images, annotations):
     image_id_to_annotations_idxs = dict()
+    for image in images:
+        image_id_to_annotations_idxs[image['id']] = list()
     for i, ann in enumerate(annotations):
-        annotations_idxs = image_id_to_annotations_idxs.get(ann['image_id'])
-        if annotations_idxs is None:
-            image_id_to_annotations_idxs[ann['image_id']] = [i]
-        else:
-            annotations_idxs.append(i)
+        image_id_to_annotations_idxs[ann['image_id']].append(i)
     return image_id_to_annotations_idxs
 
 
