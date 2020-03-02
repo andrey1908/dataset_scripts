@@ -19,7 +19,8 @@ def get_image_id_to_image(json_dict):
     return image_id_to_image
 
 
-def remove_small_boxes_scale(json_dict, threshold, width, height, image_id_to_image):
+def remove_small_boxes_scale(json_dict, threshold, width, height):
+    image_id_to_image = get_image_id_to_image(json_dict)
     sub = 0
     for i in range(len(json_dict['annotations'])):
         image = image_id_to_image[json_dict['annotations'][i - sub]['image_id']]
@@ -37,8 +38,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open(args.json_file, 'r') as f:
         json_dict = json.load(f)
-    image_id_to_image = get_image_id_to_image(json_dict)
-    removed = remove_small_boxes_scale(json_dict, args.threshold, args.width, args.height, image_id_to_image)
+    removed = remove_small_boxes_scale(json_dict, args.threshold, args.width, args.height)
     print('Removed {} boxes'.format(removed))
     with open(args.out_file, 'w') as f:
         json.dump(json_dict, f, indent=2)
