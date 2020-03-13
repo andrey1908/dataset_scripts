@@ -45,15 +45,15 @@ def get_categories_names(json_dict):
     return categories_names
 
 
-def get_categories_number(json_dict):
+def get_annotations_number(json_dict):
     cat_id_to_name = dict()
-    categories_number = dict()
+    annotations_number = dict()
     for cat in json_dict['categories']:
         cat_id_to_name[cat['id']] = cat['name']
-        categories_number[cat['name']] = 0
+        annotations_number[cat['name']] = 0
     for ann in json_dict['annotations']:
-        categories_number[cat_id_to_name[ann['category_id']]] += 1
-    return categories_number
+        annotations_number[cat_id_to_name[ann['category_id']]] += 1
+    return annotations_number
 
 
 if __name__ == '__main__':
@@ -71,9 +71,13 @@ if __name__ == '__main__':
         print(image_shape, " {}".format(images_shapes[image_shape]))
     print("")
 
-    categories_number = get_categories_number(json_dict)
-    print("Categories number:")
-    for cat_name in categories_number.keys():
-        print("{} {}".format(cat_name, categories_number[cat_name]))
+    annotations_number = get_annotations_number(json_dict)
+    print("Annotations number:")
+    for cat_name in annotations_number.keys():
+        print("{} {}".format(cat_name, annotations_number[cat_name]))
     print("")
-        
+
+    annotations_number_in_total = len(json_dict['annotations'])
+    print("Annotations number in total: {}".format(annotations_number_in_total))
+    print("")
+

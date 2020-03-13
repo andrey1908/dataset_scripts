@@ -3,6 +3,7 @@ import json
 import os
 from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
+from pathlib import Path
 
 
 def build_parser():
@@ -52,6 +53,7 @@ def preprocess_box(box, im_w, im_h):
 
 
 def draw_boxes(json_dict, images_folder, out_folder, images_number=None, font_size=20):
+    Path(out_folder).mkdir(parents=True, exist_ok=True)
     image_id_to_annotations_idxs = get_image_id_to_annotations_idxs(json_dict['images'], json_dict['annotations'])
     category_id_to_name = get_category_id_to_name(json_dict['categories'])
     if images_number is None:
