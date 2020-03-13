@@ -43,13 +43,29 @@ def correct_annotations(annotations, old_category_id_to_new):
         annotations[i]['category_id'] = old_category_id_to_new[annotations[i]['category_id']]
 
 
+def convert_all_categories(catgories, new_name):
+    old_category_name_to_new = dict()
+    for category in catgories:
+        old_name = category['name']
+        old_category_name_to_new[old_name] = new_name
+    return old_category_name_to_new
+
+
 def replace_classes(json_dict, new_categories_names, old_category_name_to_new):
+    if type(old_category_name_to_new) == str:
+        if old_category_name_to_new == 'conv_all_cats':
+            assert(len(new_categories_names) == 1)
+            old_category_name_to_new = convert_all_categories(json_dict['categories'], new_categories_names[0])
+        else:
+            raise NotImplementedError()
     old_category_id_to_new = replace_categories(json_dict['categories'], new_categories_names, old_category_name_to_new)
     correct_annotations(json_dict['annotations'], old_category_id_to_new)
     reindex_json(json_dict)
 
 
 def parse_old_category_name_to_new(args_old_category_name_to_new):
+    if (args_old_category_name_to_new == 'convert_all_categories') or (args_old_category_name_to_new == 'conv_all_cats'):
+        return 'conv_all_cats'
     old_category_name_to_new = dict()
     args_old_category_name_to_new = args_old_category_name_to_new.split(' ')
     for one_convertion in args_old_category_name_to_new:
