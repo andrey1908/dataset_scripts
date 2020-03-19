@@ -12,6 +12,9 @@ def build_parser():
     parser.add_argument('-img-fld', '--images-folder', required=True, type=str)
     parser.add_argument('-out-fld', '--out-folder', required=True, type=str)
     parser.add_argument('-num', '--images-number', type=int)
+    parser.add_argument('-img-json', '--images-json-file', type=str)
+    parser.add_argument('-thr', '--threshold', type=float, default=0.)
+    parser.add_argument('-draw-image', '--draw-single-image', type=str)
     return parser
 
 
@@ -29,6 +32,12 @@ def get_category_id_to_name(categories):
     for category in categories:
         category_id_to_name[category['id']] = category['name']
     return category_id_to_name
+
+
+def find_image_by_name(images, name):
+    for image in images:
+        if image['file_name'] == name:
+            return image
 
 
 def set_between(x, a, b):
@@ -52,17 +61,26 @@ def preprocess_box(box, im_w, im_h):
     box[:] = [round(b) for b in box]
 
 
-def draw_boxes(json_dict, images_folder, out_folder, images_number=None, font_size=20):
+def draw_boxes(json_dict, images_folder, out_folder, images_number=None, threshold=0., draw_single_image=None, font_size=20):
     Path(out_folder).mkdir(parents=True, exist_ok=True)
     image_id_to_annotations_idxs = get_image_id_to_annotations_idxs(json_dict['images'], json_dict['annotations'])
     category_id_to_name = get_category_id_to_name(json_dict['categories'])
-    if images_number is None:
-        images_number = len(json_dict['images'])
-    for image in tqdm(json_dict['images'][:images_number]):
+    if draw_single_image:
+        images_to_draw = [find_image_by_name(json_dict['images'], draw_single_image)]
+    elif images_number:
+        images_to_draw = json_dict['images'][:images_number]
+    else:
+        images_to_draw = json_dict['images']
+    for image in tqdm(images_to_draw):
         im = Image.open(os.path.join(images_folder, image['file_name']))
         annotations_idxs = image_id_to_annotations_idxs[image['id']]
         for annotation_idx in annotations_idxs:
             ann = json_dict['annotations'][annotation_idx]
+            score_str = ''
+            if 'score' in ann.keys():
+                score_str = ' ' + str(ann['score'])[:4]
+                if ann['score'] < threshold:
+                    continue
             cat_id = ann['category_id']
             cat_name = category_id_to_name[cat_id]
             box = list(ann['bbox'])
@@ -72,7 +90,7 @@ def draw_boxes(json_dict, images_folder, out_folder, images_number=None, font_si
             im_draw = ImageDraw.Draw(im)   
             im_draw.rectangle(box, outline='red')
             font = ImageFont.truetype('Pillow/Tests/fonts/FreeMono.ttf', font_size)
-            im_draw.text((box[0], box[1]-font_size), cat_name, fill='red', font=font)
+            im_draw.text((box[0], box[1]-font_size), cat_name + score_str, fill='red', font=font)
         im.save(os.path.join(out_folder, image['file_name'].split('/')[-1]))
 
 
@@ -81,5 +99,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open(args.json_file, 'r') as f:
         json_dict = json.load(f)
-    draw_boxes(json_dict, args.images_folder, args.out_folder, args.images_number)
+    if args.images_json_file:
+        with open(args.images_json_file, 'r') as f:
+            images = json.load(f)
+            json_dict = {'images': images['images'], 'annotations': json_dict, 'categories': images['categories']}
+    draw_boxes(json_dict, args.images_folder, args.out_folder, args.images_number, args.threshold, args.draw_single_image)
 

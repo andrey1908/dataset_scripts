@@ -71,7 +71,7 @@ def set_between(x, a, b):
         return b
 
 
-def coco2cvat(json_dict, reindex_images=False):
+def coco_dict2cvat_root(json_dict, reindex_images=False):
     cvat_annotations, cvat_labels = get_cvat_root_template()
     category_id_to_name = fill_cvat_labels(cvat_labels, json_dict['categories'])
     image_id_to_anns_idxs = get_image_id_to_annotations_idxs(json_dict['images'], json_dict['annotations'])
@@ -110,14 +110,18 @@ def coco2cvat(json_dict, reindex_images=False):
     return cvat_annotations
 
 
+def coco2cvat(json_file, out_file, reindex_images=False):
+    with open(json_file, 'r') as f:
+        json_dict = json.load(f)
+    cvat_root = coco_dict2cvat_root(json_dict, reindex_images)
+    rough_string = xml.tostring(cvat_root, 'utf-8')
+    reparsed = minidom.parseString(rough_string)
+    with open(out_file, "w") as f:
+        f.writelines(reparsed.toprettyxml(indent='  '))
+
+
 if __name__ == '__main__':
     parser = build_parser()
     args = parser.parse_args()
-    with open(args.json_file, 'r') as f:
-        json_dict = json.load(f)
-    cvat_annotations = coco2cvat(json_dict, args.reindex_images)
-    rough_string = xml.tostring(cvat_annotations, 'utf-8')
-    reparsed = minidom.parseString(rough_string)
-    with open(args.out_file, "w") as f:
-        f.writelines(reparsed.toprettyxml(indent='  '))
+    coco2cvat(**vars(args))
 

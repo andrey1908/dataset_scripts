@@ -54,7 +54,7 @@ def shorten_file_names(images_to_shorten):
     return images
 
 
-def cvat_root_to_coco_dict(root, detections_only=False, images_info=False, shortened_file_names=False):
+def cvat_root2coco_dict(root, detections_only=False, images_info=False, shortened_file_names=False):
     assert (not detections_only) or (not images_info)
     images = []
     annotations = []
@@ -121,7 +121,7 @@ def cvat_root_to_coco_dict(root, detections_only=False, images_info=False, short
 def cvat2coco(xml_file, out_file, detections_only=False, images_info=False, shortened_file_names=False):
     tree = xml.parse(xml_file)
     root = tree.getroot()
-    json_dict = cvat_root_to_coco_dict(root, detections_only, images_info, shortened_file_names)
+    json_dict = cvat_root2coco_dict(root, detections_only, images_info, shortened_file_names)
     with open(out_file, 'w') as f:
         json.dump(json_dict, f, indent=2)
 
