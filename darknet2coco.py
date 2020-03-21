@@ -27,7 +27,7 @@ def image_file2label_file(image_file):
     return label_file
 
 
-def darknet_yolo_list2coco_dict(images_list, images_folder):
+def darknet_list2coco_dict(images_list, images_folder):
     images = list()
     image_id = 0
     annotations = list()
@@ -63,7 +63,7 @@ def darknet_yolo_list2coco_dict(images_list, images_folder):
     return json_dict
 
 
-def darknet_yolo2coco(images_list_file, out_file, images_folder=''):
+def darknet2coco(images_list_file, out_file, images_folder=''):
     images_list = list()
     with open(args.images_list_file, 'r') as f:
         images_list = f.readlines()
@@ -78,5 +78,5 @@ def darknet_yolo2coco(images_list_file, out_file, images_folder=''):
 if __name__ == '__main__':
     parser = build_parser()
     args = parser.parse_args()
-    darknet_yolo2coco(**vars(args))
+    darknet2coco(**vars(args))
 
