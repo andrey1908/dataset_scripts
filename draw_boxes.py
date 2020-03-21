@@ -4,6 +4,7 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 from pathlib import Path
+import numpy as np
 
 
 def build_parser():
@@ -12,6 +13,7 @@ def build_parser():
     parser.add_argument('-img-fld', '--images-folder', required=True, type=str)
     parser.add_argument('-out-fld', '--out-folder', required=True, type=str)
     parser.add_argument('-num', '--images-number', type=int)
+    parser.add_argument('-rnd', '--random', action='store_true')
     parser.add_argument('-img-json', '--images-json-file', type=str)
     parser.add_argument('-thr', '--threshold', type=float, default=0.)
     parser.add_argument('-draw-image', '--draw-single-image', type=str)
@@ -61,14 +63,19 @@ def preprocess_box(box, im_w, im_h):
     box[:] = [round(b) for b in box]
 
 
-def draw_boxes(json_dict, images_folder, out_folder, images_number=None, threshold=0., draw_single_image=None, font_size=20):
+def draw_boxes(json_dict, images_folder, out_folder, images_number=None, random=False, threshold=0., draw_single_image=None, font_size=20):
     Path(out_folder).mkdir(parents=True, exist_ok=True)
     image_id_to_annotations_idxs = get_image_id_to_annotations_idxs(json_dict['images'], json_dict['annotations'])
     category_id_to_name = get_category_id_to_name(json_dict['categories'])
     if draw_single_image:
         images_to_draw = [find_image_by_name(json_dict['images'], draw_single_image)]
     elif images_number:
-        images_to_draw = json_dict['images'][:images_number]
+        images_idxs = [i for i in range(len(json_dict['images']))]
+        if random:
+            np.random.shuffle(images_idxs)
+        images_to_draw = list()
+        for i in range(images_number):
+            images_to_draw.append(json_dict['images'][images_idxs[i]])
     else:
         images_to_draw = json_dict['images']
     for image in tqdm(images_to_draw):
@@ -103,5 +110,5 @@ if __name__ == '__main__':
         with open(args.images_json_file, 'r') as f:
             images = json.load(f)
             json_dict = {'images': images['images'], 'annotations': json_dict, 'categories': images['categories']}
-    draw_boxes(json_dict, args.images_folder, args.out_folder, args.images_number, args.threshold, args.draw_single_image)
+    draw_boxes(json_dict, args.images_folder, args.out_folder, args.images_number, args.random, args.threshold, args.draw_single_image)
 
