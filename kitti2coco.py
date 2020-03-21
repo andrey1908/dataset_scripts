@@ -7,7 +7,7 @@ import numpy as np
 
 def build_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-kitti', '--kitti-folder', required=True, type=str, help='where kitti dataset is')
+    parser.add_argument('-kitti-fld', '--kitti-folder', required=True, type=str, help='where kitti dataset is')
     parser.add_argument('-out', '--out-file', required=True, type=str, help='where to save converted'
                                                                                           ' annotation file')
     return parser

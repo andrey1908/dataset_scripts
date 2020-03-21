@@ -6,7 +6,7 @@ import os
 def build_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-json', '--json-file', required=True, type=str)
-    parser.add_argument('-fld', '--images-folder', required=True, type=str)
+    parser.add_argument('-img-fld', '--images-folder', required=True, type=str)
     return parser
 
 

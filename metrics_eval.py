@@ -11,8 +11,8 @@ from pycocotools.cocoeval import COCOeval
 
 def build_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-ann', '--annotations_file', required=True, type=str)
-    parser.add_argument('-det', '--detections_file', required=True, type=str)
+    parser.add_argument('-ann', '--annotations-file', required=True, type=str)
+    parser.add_argument('-det', '--detections-file', required=True, type=str)
     parser.add_argument('-area', '--area', nargs=2, type=str, default=['0**2', '1e5**2'])
     return parser
 
