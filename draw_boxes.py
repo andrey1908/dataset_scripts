@@ -5,6 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 from pathlib import Path
 import numpy as np
+from unique_file_paths_generator import UniqueFilePathsGenerator
 
 
 def build_parser():
@@ -12,11 +13,12 @@ def build_parser():
     parser.add_argument('-json', '--json-file', required=True, type=str)
     parser.add_argument('-img-fld', '--images-folder', required=True, type=str)
     parser.add_argument('-out-fld', '--out-folder', required=True, type=str)
+    parser.add_argument('-draw-image', '--draw-single-image', type=str)
     parser.add_argument('-num', '--images-number', type=int)
     parser.add_argument('-rnd', '--random', action='store_true')
     parser.add_argument('-img-json', '--images-json-file', type=str)
+    parser.add_argument('-preserve-files-tree', '--preserve-files-tree', action='store_true')
     parser.add_argument('-thr', '--threshold', type=float, default=0.)
-    parser.add_argument('-draw-image', '--draw-single-image', type=str)
     return parser
 
 
@@ -36,10 +38,11 @@ def get_category_id_to_name(categories):
     return category_id_to_name
 
 
-def find_image_by_name(images, name):
+def find_image_by_name(images, file_name):
     for image in images:
-        if image['file_name'] == name:
+        if image['file_name'] == file_name:
             return image
+    return None
 
 
 def set_between(x, a, b):
@@ -63,21 +66,31 @@ def preprocess_box(box, im_w, im_h):
     box[:] = [round(b) for b in box]
 
 
-def draw_boxes(json_dict, images_folder, out_folder, images_number=None, random=False, threshold=0., draw_single_image=None, font_size=20):
-    Path(out_folder).mkdir(parents=True, exist_ok=True)
-    image_id_to_annotations_idxs = get_image_id_to_annotations_idxs(json_dict['images'], json_dict['annotations'])
-    category_id_to_name = get_category_id_to_name(json_dict['categories'])
+def get_images_to_draw(images, images_folder, draw_single_image=None, images_number=None, random=False):
     if draw_single_image:
-        images_to_draw = [find_image_by_name(json_dict['images'], draw_single_image)]
+        image_name = os.path.relpath(draw_single_image, images_folder)
+        images_to_draw = [find_image_by_name(images, image_name)]
     elif images_number:
-        images_idxs = [i for i in range(len(json_dict['images']))]
+        images_idxs = [i for i in range(len(images))]
         if random:
             np.random.shuffle(images_idxs)
         images_to_draw = list()
         for i in range(images_number):
-            images_to_draw.append(json_dict['images'][images_idxs[i]])
+            images_to_draw.append(images[images_idxs[i]])
     else:
-        images_to_draw = json_dict['images']
+        images_to_draw = images
+    return images_to_draw
+
+
+def draw_boxes(json_dict, images_folder, out_folder, draw_single_image=None, images_number=None, random=False,
+               preserve_files_tree=False, threshold=0.):
+    Path(out_folder).mkdir(parents=True, exist_ok=True)
+    image_id_to_annotations_idxs = get_image_id_to_annotations_idxs(json_dict['images'], json_dict['annotations'])
+    category_id_to_name = get_category_id_to_name(json_dict['categories'])
+    images_to_draw = get_images_to_draw(json_dict['images'], images_folder, draw_single_image, images_number, random)
+    if images_to_draw is None:
+        raise RuntimeError()
+    uniquer = UniqueFilePathsGenerator()
     for image in tqdm(images_to_draw):
         im = Image.open(os.path.join(images_folder, image['file_name']))
         annotations_idxs = image_id_to_annotations_idxs[image['id']]
@@ -94,11 +107,18 @@ def draw_boxes(json_dict, images_folder, out_folder, images_number=None, random=
             preprocess_box(box, im.size[0], im.size[1])
             if (box[0] >= box[2]) or (box[1] >= box[3]):
                 continue
-            im_draw = ImageDraw.Draw(im)   
-            im_draw.rectangle(box, outline='red')
+            im_draw = ImageDraw.Draw(im)
+            width = int(max(im.size)/800) + 1
+            im_draw.rectangle(box, outline='red', width=width)
+            font_size = int(max(im.size)/100) + 10
             font = ImageFont.truetype('Pillow/Tests/fonts/FreeMono.ttf', font_size)
             im_draw.text((box[0], box[1]-font_size), cat_name + score_str, fill='red', font=font)
-        im.save(os.path.join(out_folder, image['file_name'].split('/')[-1]))
+        rel_out_image_path = image['file_name'] if preserve_files_tree else os.path.basename(image['file_name'])
+        out_image_path = os.path.join(out_folder, rel_out_image_path)
+        out_image_path = uniquer.unique(out_image_path)
+        if preserve_files_tree:
+            Path(os.path.dirname(out_image_path)).mkdir(parents=True, exist_ok=True)
+        im.save(out_image_path)
 
 
 if __name__ == '__main__':
@@ -110,5 +130,7 @@ if __name__ == '__main__':
         with open(args.images_json_file, 'r') as f:
             images = json.load(f)
             json_dict = {'images': images['images'], 'annotations': json_dict, 'categories': images['categories']}
-    draw_boxes(json_dict, args.images_folder, args.out_folder, args.images_number, args.random, args.threshold, args.draw_single_image)
+    draw_boxes(json_dict, args.images_folder, args.out_folder,
+               draw_single_image=args.draw_single_image, images_number=args.images_number, random=args.random,
+               preserve_files_tree=args.preserve_files_tree, threshold=args.threshold)
 
