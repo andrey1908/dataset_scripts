@@ -39,15 +39,7 @@ def unite_categories(categories_list):
     return new_categories, old_category_id_to_new
 
 
-def cut_and_split_file_name(file_name):
-    splitted = file_name.split('/')[-1].split('.')
-    # woe means without extension
-    file_name_woe = '.'.join(splitted[:-1])
-    extension = splitted[-1]
-    return file_name_woe, extension
-
-
-def unite_images(images_list, images_folders, out_images_folder, symbol='_'):
+def unite_images(images_list, images_folders, out_images_folder):
     new_images = list()
     # woe means without extension
     used_images_names_woe = set()
@@ -58,11 +50,14 @@ def unite_images(images_list, images_folders, out_images_folder, symbol='_'):
         for image in tqdm(images):
             image_name = image['file_name']
             # woe means without extension
-            image_name_woe, extension = cut_and_split_file_name(image_name)
-            while image_name_woe in used_images_names_woe:
-                image_name_woe = image_name_woe + symbol
-            used_images_names_woe.add(image_name_woe)
-            new_image_name = '.'.join([image_name_woe, extension])
+            image_name_woe, extension = os.path.splitext(os.path.basename(image_name))
+            new_image_name_woe = image_name_woe
+            number_to_add = 1
+            while new_image_name_woe in used_images_names_woe:
+                new_image_name_woe = image_name_woe + '_{}'.format(number_to_add)
+                number_to_add += 1
+            used_images_names_woe.add(new_image_name_woe)
+            new_image_name = new_image_name_woe + extension
             new_image = deepcopy(image)
             new_image.update({'file_name': new_image_name, 'id': image_id})
             new_images.append(new_image)

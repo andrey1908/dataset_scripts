@@ -10,6 +10,7 @@ def build_parser():
     return parser
 
 
+#TODO: def make_images_list(images_folders, root_folders, out_list=None):
 def make_images_list(images_folders, root_folders):
     if len(images_folders) != len(root_folders):
         raise ValueError()
