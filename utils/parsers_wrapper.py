@@ -48,7 +48,7 @@ class ParsersWrapper:
         for parser in self.parsers:
             parser.parse(context)
 
-    def save(self, out_files, ignore=''):
+    def save(self, out_files, context, ignore=''):
         if len(out_files) != self.parsers_with_save:
             raise RuntimeError('Number of out files is not equal to number of parsers to save.')
         out_files_idx, data_parsers_idx = 0, 0
@@ -57,8 +57,7 @@ class ParsersWrapper:
                 data_parsers_idx += 1
                 continue
             if out_files[out_files_idx] != ignore:
-                with open(out_files[out_files_idx], 'w') as f:
-                    self.parsers[data_parsers_idx].save(f)
+                self.parsers[data_parsers_idx].save(out_files[out_files_idx], context)
             out_files_idx += 1
             data_parsers_idx += 1
 

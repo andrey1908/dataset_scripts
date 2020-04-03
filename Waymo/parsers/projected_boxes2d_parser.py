@@ -44,6 +44,7 @@ class ProjectedBoxes2DParser:
         self.json_dict['images'].append(image)
         self.image_id += 1
 
-    def save(self, f):
-        json.dump(self.json_dict, f, indent=2)
+    def save(self, out_file, context):
+        with open(out_file, 'w') as f:
+            json.dump(self.json_dict, f, indent=2)
 

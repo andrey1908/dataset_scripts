@@ -28,6 +28,7 @@ class TestBoxes2DId:
                     self.out_lines.append('Label with id {} appears again in an other file\n'.format(label.id));
                 self.seen_id_to_camera[label.id] = labels.name
 
-    def save(self, f):
-        f.writelines(self.out_lines)
+    def save(self, out_file, context):
+        with open(out_file, 'w') as f:
+            f.writelines(self.out_lines)
 

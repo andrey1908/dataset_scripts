@@ -20,7 +20,8 @@ class EnvironmentParser:
         self.location.append(str(context.frame.context.stats.location))
         self.weather.append(str(context.frame.context.stats.weather))
 
-    def save(self, f):
+    def save(self, out_file, context):
+        lines = list()
         for image_file, time_of_day, location, weather in zip(self.images_files, self.time_of_day, self.location, self.weather):
             if time_of_day == '':
                 time_of_day = '-'
@@ -29,5 +30,7 @@ class EnvironmentParser:
             if weather == '':
                 weather = '-'
             line = ' '.join([image_file, time_of_day, location, weather]) + '\n'
-            f.write(line)
+            lines.append(line)
+        with open(out_file, 'w') as f:
+            f.writelines(lines)
 

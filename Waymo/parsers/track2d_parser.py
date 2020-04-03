@@ -47,7 +47,6 @@ class Track2DParser:
         self.sequence_name_max_len = 4
         self.label_type_to_str = {1: 'vehicle', 2: 'pedestrian', 3: 'sign', 4: 'cyclist'}
         self.root_folder = context.out_images_folder if context.root_folder is None else context.root_folder
-        self.out_lines = list()
 
     def parse(self, context):
         sequence_name = context.frame.context.name
@@ -67,18 +66,20 @@ class Track2DParser:
                 label_id_to_int[label_id] = label_id_int
             label_type_str = self.label_type_to_str[label_type]
             sequence.add(image_file, label_id_int, label_type_str, label_box)
-        if context.last_tfrecord_file and context.last_frame and context.last_image:
-            self._save_sequences(context)
+
+    def save(self, out_file, context):
+        out_lines = self._save_sequences(context)
+        with open(out_file, 'w') as f:
+            f.writelines(out_lines)
 
     def _save_sequences(self, context):
+        out_lines = list()
         track_root_folder = context.track_root_folder if context.valid_attr('track_root_folder') else context.out_track_folder
         for sequence, _ in self.sequences.values():
             sequence_file, images_path = sequence.save(context.out_track_folder, self.sequence_name_max_len)
             if (sequence_file is None) or (images_path is None):
                 continue
             out_line = '{} {}\n'.format(os.path.relpath(sequence_file, track_root_folder), os.path.relpath(images_path, self.root_folder))
-            self.out_lines.append(out_line)
-
-    def save(self, f):
-        f.writelines(self.out_lines)
+            out_lines.append(out_line)
+        return out_lines
 

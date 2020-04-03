@@ -49,6 +49,7 @@ class Boxes2DParser:
         self.image_id += 1
         context.update(Boxes2DParser_context=Boxes2DParser_context)
 
-    def save(self, f):
-        json.dump(self.json_dict, f, indent=2)
+    def save(self, out_file, context):
+        with open(out_file, 'w') as f:
+            json.dump(self.json_dict, f, indent=2)
 

@@ -86,5 +86,5 @@ if __name__ == '__main__':
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
     tfrecord_files = find_files(data_paths, ['.tfrecord'])
     data_parsers = parse_waymo(tfrecord_files, parsers_names, **kwargs)
-    data_parsers.save(out_files)
+    data_parsers.save(out_files, Context(tfrecord_files=tfrecord_files, **kwargs))
 

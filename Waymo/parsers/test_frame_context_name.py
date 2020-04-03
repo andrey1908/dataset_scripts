@@ -20,6 +20,7 @@ class TestFrameContextName:
             self.tfrecord_file = context.tfrecord_file
         self.context_name = context.frame.context.name
 
-    def save(self, f):
-        f.writelines(self.out_lines)
+    def save(self, out_file, context):
+        with open(out_file, 'w') as f:
+            f.writelines(self.out_lines)
 
