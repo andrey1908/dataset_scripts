@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 from pathlib import Path
 import numpy as np
-from unique_file_paths_generator import UniqueFilePathsGenerator
+from utils import UniquePathsNamesGenerator
 
 
 def build_parser():
@@ -90,7 +90,7 @@ def draw_boxes(json_dict, images_folder, out_folder, draw_single_image=None, ima
     images_to_draw = get_images_to_draw(json_dict['images'], images_folder, draw_single_image, images_number, random)
     if images_to_draw is None:
         raise RuntimeError()
-    uniquer = UniqueFilePathsGenerator()
+    uniquer = UniquePathsNamesGenerator()
     for image in tqdm(images_to_draw):
         im = Image.open(os.path.join(images_folder, image['file_name']))
         annotations_idxs = image_id_to_annotations_idxs[image['id']]

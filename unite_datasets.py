@@ -5,6 +5,7 @@ from copy import deepcopy
 from shutil import copyfile
 import os
 from tqdm import tqdm
+from utils import UniquePathsNamesGenerator
 
 
 def build_parser():
@@ -41,23 +42,14 @@ def unite_categories(categories_list):
 
 def unite_images(images_list, images_folders, out_images_folder):
     new_images = list()
-    # woe means without extension
-    used_images_names_woe = set()
+    uniquer = UniquePathsNamesGenerator()
     old_image_id_to_new = list()
     image_id = 0
     for i, images in tqdm(list(enumerate(images_list))):
         old_image_id_to_new_for_one = dict()
         for image in tqdm(images):
             image_name = image['file_name']
-            # woe means without extension
-            image_name_woe, extension = os.path.splitext(os.path.basename(image_name))
-            new_image_name_woe = image_name_woe
-            number_to_add = 1
-            while new_image_name_woe in used_images_names_woe:
-                new_image_name_woe = image_name_woe + '_{}'.format(number_to_add)
-                number_to_add += 1
-            used_images_names_woe.add(new_image_name_woe)
-            new_image_name = new_image_name_woe + extension
+            new_image_name = uniquer.unique(os.path.basename(image_name))
             new_image = deepcopy(image)
             new_image.update({'file_name': new_image_name, 'id': image_id})
             new_images.append(new_image)
