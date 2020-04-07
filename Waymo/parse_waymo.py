@@ -1,19 +1,12 @@
 import os
 import argparse
 import tensorflow as tf
-tf.compat.v1.enable_eager_execution()
-import math
-import numpy as np
-import itertools
-from PIL import Image
 from tqdm import tqdm
-import json
-from pathlib import Path
-from os.path import dirname
-from waymo_open_dataset.utils import frame_utils
 from waymo_open_dataset import dataset_pb2 as open_dataset
 from parsers import WAYMO_PARSERS_REGISTRY
 from dataset_scripts.utils import Context, ParsersWrapper
+
+tf.enable_eager_execution()
 
 
 def build_parser():
@@ -24,7 +17,7 @@ def build_parser():
     parser.add_argument('-out-img-fld', '--out-images-folder', type=str, default='images/')
     parser.add_argument('-ifn', '--images-feature-name', type=str)
     parser.add_argument('-no-si', '--no-save-images', dest='save_images', action='store_false')
-    parser.add_argument('-root-fld', '--root-folder', type=str)
+    parser.add_argument('-img-root-fld', '--images-root-folder', type=str)
     parser.add_argument('-out-track-fld', '--out-track-folder', type=str, default='track/')
     parser.add_argument('-track-root-fld', '--track-root-folder', type=str)
     parser.add_argument('-gpu', '--gpu', type=int, default=0)

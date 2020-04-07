@@ -1,6 +1,5 @@
 import os
 import json
-from waymo_open_dataset import dataset_pb2 as open_dataset
 from dataset_scripts.utils import Context
 from .registry import WAYMO_PARSERS_REGISTRY
 
@@ -37,8 +36,8 @@ class ProjectedBoxes2DParser:
                 ann['id'] = self.ann_id
                 self.json_dict['annotations'].append(ann)
                 self.ann_id += 1
-        root_folder = context.root_folder if context.valid_attr('root_folder') else context.out_images_folder
-        file_name = os.path.relpath(context.ImagesParser_context.image_file, root_folder)
+        images_root_folder = context.images_root_folder if context.valid_attr('images_root_folder') else context.out_images_folder
+        file_name = os.path.relpath(context.ImagesParser_context.image_file, images_root_folder)
         image = {'file_name': file_name, 'id': self.image_id,
                  'width': context.ImagesParser_context.image_width, 'height': context.ImagesParser_context.image_height}
         self.json_dict['images'].append(image)
