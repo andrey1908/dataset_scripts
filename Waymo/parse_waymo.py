@@ -15,7 +15,7 @@ def build_parser():
     parser.add_argument('-parsers', '--parsers-names', required=True, type=str, nargs='+')
     parser.add_argument('-outs', '--out-files', type=str, nargs='+', default=list())
     parser.add_argument('-out-img-fld', '--out-images-folder', type=str, default='images/')
-    parser.add_argument('-ifn', '--images-feature-name', type=str)
+    parser.add_argument('-ifn', '--images-feature-name', type=str, default='camera')
     parser.add_argument('-no-si', '--no-save-images', dest='save_images', action='store_false')
     parser.add_argument('-img-root-fld', '--images-root-folder', type=str)
     parser.add_argument('-out-track-fld', '--out-track-folder', type=str, default='track/')
