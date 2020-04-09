@@ -13,7 +13,7 @@ def build_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-data-paths', '--data-paths', required=True, type=str, nargs='+')
     parser.add_argument('-parsers', '--parsers-names', required=True, type=str, nargs='+')
-    parser.add_argument('-outs', '--out-files', required=True, type=str, nargs='+')
+    parser.add_argument('-outs', '--out-files', type=str, nargs='+', default=list())
     parser.add_argument('-out-img-fld', '--out-images-folder', type=str, default='images/')
     parser.add_argument('-ifn', '--images-feature-name', type=str)
     parser.add_argument('-no-si', '--no-save-images', dest='save_images', action='store_false')
@@ -69,8 +69,8 @@ def find_files(paths, extensions=None):
 if __name__ == '__main__':
     parser = build_parser()
     args = parser.parse_args()
-    if args.root_folder is None:
-        args.root_folder = args.out_images_folder
+    if args.images_root_folder is None:
+        args.images_root_folder = args.out_images_folder
     kwargs = vars(args)
     data_paths = kwargs.pop('data_paths')
     parsers_names = kwargs.pop('parsers_names')
