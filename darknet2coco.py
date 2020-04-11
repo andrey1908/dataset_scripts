@@ -70,7 +70,7 @@ def darknet2coco(images_list_file, out_file, images_folder=''):
     for i in range(len(images_list)):
         if images_list[i][-1] == '\n':
             images_list[i] = images_list[i][:-1]
-    json_dict = darknet_yolo_list2coco_dict(images_list, args.images_folder)
+    json_dict = darknet_list2coco_dict(images_list, args.images_folder)
     with open(out_file, 'w') as f:
         json.dump(json_dict, f, indent=2)
 
