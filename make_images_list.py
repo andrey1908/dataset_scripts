@@ -1,6 +1,6 @@
 import os
 import argparse
-from dataset_scripts.utils import find_files
+from utils import find_files
 
 
 def build_parser():
