@@ -16,9 +16,18 @@ class Boxes2DParser:
     def _get_categories(self):
         categories = [{'id': 1, 'name': 'vehicle'},
                       {'id': 2, 'name': 'pedestrian'},
-                      {'id': 3, 'name': 'sign'},
-                      {'id': 4, 'name': 'cyclist'}]
+                      {'id': 3, 'name': 'cyclist'}]
         return categories
+
+    def _conv_cat_id(self, cat_id):
+        if cat_id == 1:
+            return 1
+        elif cat_id == 2:
+            return 2
+        elif cat_id == 4:
+            return 3
+        else:
+            raise RuntimeError
 
     def parse(self, context):
         Boxes2DParser_context = Context(boxes=list(), types=list(), ids=list())
@@ -33,7 +42,7 @@ class Boxes2DParser:
                 ann['iscrowd'] = 0
                 ann['image_id'] = self.image_id
                 ann['bbox'] = bbox
-                ann['category_id'] = label.type
+                ann['category_id'] = self._conv_cat_id(label.type)
                 ann['id'] = self.ann_id
                 self.json_dict['annotations'].append(ann)
                 self.ann_id += 1
