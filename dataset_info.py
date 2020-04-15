@@ -67,8 +67,10 @@ if __name__ == '__main__':
 
     print("Images shapes:")
     images_shapes = get_images_shapes(json_dict)
-    for image_shape in images_shapes.keys():
-        print(image_shape, " {}".format(images_shapes[image_shape]))
+    images_shapes_nums = list(images_shapes.items())
+    images_shapes_nums.sort(key=lambda x: -x[1])
+    for image_shape, num in images_shapes_nums:
+        print(image_shape, " {}".format(num))
     print("")
 
     annotations_number = get_annotations_number(json_dict)
