@@ -1,6 +1,7 @@
 import argparse
 import os
 import json
+from pathlib import Path
 
 
 def build_parser():
@@ -27,8 +28,7 @@ def coco2darknet(json_file, out_list_file, out_annotations_folder, add_prefix):
     images = json_dict['images']
     img_id_to_anns = get_img_id_to_anns(json_dict['images'], json_dict['annotations'])
     out_list = list()
-    if not os.path.exists(out_annotations_folder):
-        os.mkdir(out_annotations_folder)
+    Path(out_annotations_folder).mkdir(parents=True, exist_ok=True)
     for image in images:
         out_list.append(os.path.join(add_prefix, image['file_name']) + '\n')
         lines = list()
