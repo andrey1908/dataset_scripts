@@ -46,7 +46,7 @@ class ImagesParser:
             if not os.path.isfile(path_to_save_image):
                 raise RuntimeError('Image {} does not exist'.format(path_to_save_image))
             im = tf.image.decode_jpeg(context.image_data.image)
-            image_width, image_height = im.shape[1], im.shape[0]
+            image_width, image_height = int(im.shape[1]), int(im.shape[0])
         ImagesParser_context = Context(image_file=path_to_save_image, image_width=image_width, image_height=image_height)
         context.update(ImagesParser_context=ImagesParser_context)
 
