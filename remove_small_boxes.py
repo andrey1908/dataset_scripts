@@ -12,12 +12,14 @@ def build_parser():
 
 def remove_small_boxes(json_dict, threshold):
     sub = 0
+    ann_id = 1
     for i in range(len(json_dict['annotations'])):
         if json_dict['annotations'][i - sub]['area'] < threshold:
             del json_dict['annotations'][i - sub]
             sub += 1
         else:
-            json_dict['annotations'][i - sub]['id'] -= sub
+            json_dict['annotations'][i - sub]['id'] = ann_id
+            ann_id += 1
     return sub
 
 

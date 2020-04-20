@@ -22,6 +22,7 @@ def get_image_id_to_image(json_dict):
 def remove_small_boxes_scale(json_dict, threshold, width, height):
     image_id_to_image = get_image_id_to_image(json_dict)
     sub = 0
+    ann_id = 1
     for i in range(len(json_dict['annotations'])):
         image = image_id_to_image[json_dict['annotations'][i - sub]['image_id']]
         scale = min(width/image['width'], height/image['height'])
@@ -29,7 +30,8 @@ def remove_small_boxes_scale(json_dict, threshold, width, height):
             del json_dict['annotations'][i - sub]
             sub += 1
         else:
-            json_dict['annotations'][i - sub]['id'] -= sub
+            json_dict['annotations'][i - sub]['id'] = ann_id
+            ann_id += 1
     return sub
 
 
