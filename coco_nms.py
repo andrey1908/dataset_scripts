@@ -3,6 +3,7 @@ import argparse
 import json
 import numpy as np
 import os
+from tqdm import tqdm
 
 
 class Box(ctypes.Structure):
@@ -11,7 +12,7 @@ class Box(ctypes.Structure):
                 ('w', ctypes.c_float),
                 ('h', ctypes.c_float),
                 ('score', ctypes.c_float),
-                ('idx', ctypes.c_float)]
+                ('idx', ctypes.c_int)]
 
 
 nms_lib = ctypes.cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), 'nms.so'))
@@ -59,7 +60,7 @@ def coco_nms(json_dict, threshold):
 
     sub = 0
     ann_id = 1
-    for i in range(len(json_dict['annotations'])):
+    for i in tqdm(list(range(len(json_dict['annotations'])))):
         if i in idxs_to_remove:
             del json_dict['annotations'][i - sub]
             sub += 1

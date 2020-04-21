@@ -3,7 +3,8 @@
 
 
 typedef struct{
-    float x, y, w, h, score, idx;
+    float x, y, w, h, score;
+    int idx;
 } box;
 
 
