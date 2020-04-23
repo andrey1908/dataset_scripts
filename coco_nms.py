@@ -47,7 +47,7 @@ def coco_nms(json_dict, threshold):
             ann = json_dict['annotations'][ann_idx]
             x, y, w, h = ann['bbox']
             box = Box()
-            box.x, box.y, box.w, box.h = x, y, w, h
+            box.x, box.y, box.w, box.h = x + w/2, y + h/2, w, h
             box.score = ann['score']
             box.idx = ann_idx
             boxes.append(box)
