@@ -14,15 +14,15 @@ class UniquePathsNamesGenerator:
 
     def _add_postfix(self, path_name, postfix):
         path_name_woe, extension = os.path.splitext(path_name)
-        new_path_name_woe = os.path.normpath(path_name_woe) + '_{}'.format(postfix)
+        new_path_name_woe = os.path.normpath(path_name_woe) + postfix
         new_path_name = new_path_name_woe + extension
         return new_path_name
 
     def get_unique_path_name(self, path_name):
         postfix = 1
-        new_path_name = os.path.normpath(path_name)
+        new_path_name = path_name
         while self.is_used(new_path_name):
-            new_path_name = self._add_postfix(path_name, postfix)
+            new_path_name = self._add_postfix(path_name, '_{}'.format(postfix))
             postfix += 1
         return new_path_name
 
