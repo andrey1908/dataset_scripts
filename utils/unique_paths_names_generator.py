@@ -3,14 +3,11 @@ import os
 
 class UniquePathsNamesGenerator:
     def __init__(self):
-        self.used_paths_names = list()
+        self.used_paths_names = set()
 
     def is_used(self, path_name):
         path_name = os.path.normpath(path_name)
-        for used_path_name in self.used_paths_names:
-            if used_path_name == path_name:
-                return True
-        return False
+        return path_name in self.used_paths_names
 
     def is_unique(self, path_name):
         return not self.is_used(path_name)
@@ -31,11 +28,11 @@ class UniquePathsNamesGenerator:
 
     def add_used_path_name(self, path_name):
         if not self.is_used(path_name):
-            self.used_paths_names.append(os.path.normpath(path_name))
+            self.used_paths_names.add(os.path.normpath(path_name))
 
     def unique(self, path_name):
         unique_path_name = self.get_unique_path_name(path_name)
-        self.add_used_path_name(unique_path_name)
+        self.used_paths_names.add(os.path.normpath(unique_path_name))
         return unique_path_name
         
     def clear(self):
