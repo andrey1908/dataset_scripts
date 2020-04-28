@@ -8,8 +8,8 @@ from reindex_json import reindex_json
 def build_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-json', '--json-file', required=True, type=str)
-    parser.add_argument('-train-out', '--train-out-file', required=True, type=str)
-    parser.add_argument('-test-out', '--test-out-file', required=True, type=str)
+    parser.add_argument('-train', '--train-out-file', required=True, type=str)
+    parser.add_argument('-test', '--test-out-file', required=True, type=str)
     parser.add_argument('-sr', '--split-rate', type=float, default=0.8, help='Percentage of training images.')
     return parser
 
