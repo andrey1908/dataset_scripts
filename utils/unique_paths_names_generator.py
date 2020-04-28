@@ -4,6 +4,7 @@ import os
 class UniquePathsNamesGenerator:
     def __init__(self):
         self.used_paths_names = set()
+        self.postfix = 1
 
     def is_used(self, path_name):
         path_name = os.path.normpath(path_name)
@@ -19,11 +20,10 @@ class UniquePathsNamesGenerator:
         return new_path_name
 
     def get_unique_path_name(self, path_name):
-        postfix = 1
         new_path_name = path_name
         while self.is_used(new_path_name):
-            new_path_name = self._add_postfix(path_name, '_{}'.format(postfix))
-            postfix += 1
+            new_path_name = self._add_postfix(path_name, '_{}'.format(self.postfix))
+            self.postfix += 1
         return new_path_name
 
     def add_used_path_name(self, path_name):
@@ -37,4 +37,5 @@ class UniquePathsNamesGenerator:
         
     def clear(self):
         self.used_paths_names.clear()
+        self.postfix = 1
 
