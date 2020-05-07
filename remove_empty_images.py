@@ -1,6 +1,6 @@
 import argparse
 import json
-from reindex_json import reindex_json
+from reindex_coco import reindex_coco
 
 
 def build_parser():
@@ -24,7 +24,7 @@ def only_remove_empty_images(json_dict):
 
 def remove_empty_images(json_dict):
     removed = only_remove_empty_images(json_dict)
-    reindex_json(json_dict)
+    reindex_coco(json_dict)
     return removed
 
 

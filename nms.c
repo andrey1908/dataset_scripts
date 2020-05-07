@@ -66,7 +66,7 @@ void do_nms(box *boxes, int total, float thresh)
     for(i = 0; i < total; ++i){
         if (boxes[i].score == 0) continue;
         for(j = i+1; j < total; ++j){
-            if (box_iou(boxes[i], boxes[j]) > thresh){
+            if (box_iou(boxes[i], boxes[j]) >= thresh){
                 boxes[j].score = 0;
             }
         }

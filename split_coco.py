@@ -2,7 +2,7 @@ import argparse
 import json
 import numpy as np
 from copy import deepcopy
-from reindex_json import reindex_json
+from reindex_coco import reindex_coco
 
 
 def build_parser():
@@ -24,7 +24,7 @@ def get_image_id_to_annotations_idxs(json_dict):
     return image_id_to_annotations_idxs
 
 
-def split_json_dict(json_dict, split_rate):
+def split_coco_dict(json_dict, split_rate):
     images = deepcopy(json_dict['images'])
     np.random.shuffle(images)
     train_images = images[:int(len(images)*split_rate)]
@@ -46,15 +46,15 @@ def split_json_dict(json_dict, split_rate):
 
     train_json_dict = {'images': train_images, 'annotations': train_annotations, 'categories': deepcopy(json_dict['categories'])}
     test_json_dict = {'images': test_images, 'annotations': test_annotations, 'categories': deepcopy(json_dict['categories'])}
-    reindex_json(train_json_dict)
-    reindex_json(test_json_dict)
+    reindex_coco(train_json_dict)
+    reindex_coco(test_json_dict)
     return train_json_dict, test_json_dict
 
 
-def split_json(json_file, train_out_file, test_out_file, split_rate):
+def split_coco(json_file, train_out_file, test_out_file, split_rate):
     with open(json_file, 'r') as f:
         json_dict = json.load(f)
-    train_json_dict, test_json_dict = split_json_dict(json_dict, split_rate)
+    train_json_dict, test_json_dict = split_coco_dict(json_dict, split_rate)
     with open(train_out_file, 'w') as f:
         json.dump(train_json_dict, f, indent=2)
     with open(test_out_file, 'w') as f:
@@ -64,4 +64,4 @@ def split_json(json_file, train_out_file, test_out_file, split_rate):
 if __name__ == '__main__':
     parser = build_parser()
     args = parser.parse_args()
-    split_json(**vars(args))
+    split_coco(**vars(args))

@@ -1,6 +1,6 @@
 import argparse
 import json
-from reindex_json import reindex_json
+from reindex_coco import reindex_coco
 import re
 
 
@@ -60,7 +60,7 @@ def replace_classes(json_dict, new_categories_names, old_category_name_to_new):
             raise NotImplementedError()
     old_category_id_to_new = replace_categories(json_dict['categories'], new_categories_names, old_category_name_to_new)
     correct_annotations(json_dict['annotations'], old_category_id_to_new)
-    reindex_json(json_dict)
+    reindex_coco(json_dict)
 
 
 def parse_old_category_name_to_new(args_old_category_name_to_new):

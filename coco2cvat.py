@@ -2,6 +2,7 @@ import xml.etree.ElementTree as xml
 import json
 import argparse
 from xml.dom import minidom
+from utils.coco_tools import get_image_id_to_annotations_idxs
 
 
 def build_parser():
@@ -12,7 +13,7 @@ def build_parser():
     return parser
 
 
-def get_cvat_root_template():
+def get_cvat_root_template(json_dict):
     annotations = xml.Element("annotations")
     meta = xml.SubElement(annotations, "meta")
     task = xml.SubElement(meta, "task")
@@ -31,15 +32,6 @@ def fill_cvat_labels(cvat_labels, categories):
         xml.SubElement(cvat_label, "name").text = category['name']
         category_id_to_name[category['id']] = category['name']
     return category_id_to_name
-
-
-def get_image_id_to_annotations_idxs(images, annotations):
-    image_id_to_anns_idxs = dict()
-    for image in images:
-        image_id_to_anns_idxs[image['id']] = list()
-    for i, annotation in enumerate(annotations):
-        image_id_to_anns_idxs[annotation['image_id']].append(i)
-    return image_id_to_anns_idxs
 
 
 def get_images_order(images, reindex_images):
@@ -72,9 +64,9 @@ def set_between(x, a, b):
 
 
 def coco_dict2cvat_root(json_dict, reindex_images=False):
-    cvat_annotations, cvat_labels = get_cvat_root_template()
+    cvat_annotations, cvat_labels = get_cvat_root_template(json_dict)
     category_id_to_name = fill_cvat_labels(cvat_labels, json_dict['categories'])
-    image_id_to_anns_idxs = get_image_id_to_annotations_idxs(json_dict['images'], json_dict['annotations'])
+    image_id_to_anns_idxs = get_image_id_to_annotations_idxs(json_dict)
     images_order = get_images_order(json_dict['images'], reindex_images)
     image_id = 0
     for i in images_order:

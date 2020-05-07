@@ -13,7 +13,8 @@ def build_parser():
 
 def make_images_list(images_folders, root_folder):
     found_files, unknown_extensions = find_files(images_folders, ['.jpg', '.png'], ['.txt'])
-    print('Unknown extensions: {}'.format(unknown_extensions))
+    if len(unknown_extensions) > 0:
+        print('Unknown extensions: {}'.format(unknown_extensions))
     found_files = list(map(lambda x: os.path.relpath(x, root_folder), found_files))
     return found_files
 

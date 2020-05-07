@@ -4,7 +4,7 @@ import tensorflow as tf
 from tqdm import tqdm
 from waymo_open_dataset import dataset_pb2 as open_dataset
 from parsers import WAYMO_PARSERS_REGISTRY
-from dataset_scripts.utils import Context, ParsersWrapper
+from dataset_scripts.utils import Context, ParsersWrapper, find_files
 
 tf.enable_eager_execution()
 
@@ -41,31 +41,6 @@ def parse_waymo(tfrecord_files, parsers_names, **kwargs):
     return data_parsers
 
 
-def find_files(paths, extensions=None):
-    def check_extension(file_name, extensions):
-        if extensions is None:
-            return True
-        ext = os.path.splitext(file_name)[1]
-        if ext in extensions:
-            return True
-        else:
-            return False
-
-    found_files = list()
-    for path in paths:
-        if os.path.isfile(path):
-            if check_extension(path, extensions):
-                found_files.append(path)
-        elif os.path.isdir(path):
-            for root, dirs, files in os.walk(path):
-                for _file in files:
-                    if check_extension(_file, extensions):
-                        found_files.append(os.path.join(root, _file))
-        else:
-            raise RuntimeError('Path {} does not exist'.format(path))
-    return found_files
-
-
 if __name__ == '__main__':
     parser = build_parser()
     args = parser.parse_args()
@@ -77,7 +52,7 @@ if __name__ == '__main__':
     out_files = kwargs.pop('out_files')
     gpu = kwargs.pop('gpu')
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
-    tfrecord_files = find_files(data_paths, ['.tfrecord'])
+    tfrecord_files, _ = find_files(data_paths, ['.tfrecord'])
     data_parsers = parse_waymo(tfrecord_files, parsers_names, **kwargs)
     data_parsers.save(out_files, Context(tfrecord_files=tfrecord_files, **kwargs))
 

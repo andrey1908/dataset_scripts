@@ -6,6 +6,8 @@ from tqdm import tqdm
 from pathlib import Path
 import numpy as np
 from utils import UniquePathsNamesGenerator
+from utils.coco_tools import get_image_id_to_annotations, get_category_id_to_name, find_image_by_name
+from numpy import clip
 
 
 def build_parser():
@@ -23,47 +25,13 @@ def build_parser():
     return parser
 
 
-def get_image_id_to_annotations_idxs(images, annotations):
-    image_id_to_annotations_idxs = dict()
-    for image in images:
-        image_id_to_annotations_idxs[image['id']] = list()
-    for i, ann in enumerate(annotations):
-        image_id_to_annotations_idxs[ann['image_id']].append(i)
-    return image_id_to_annotations_idxs
-
-
-def get_category_id_to_name(categories):
-    category_id_to_name = dict()
-    for category in categories:
-        category_id_to_name[category['id']] = category['name']
-    return category_id_to_name
-
-
-def find_image_by_name(images, file_name):
-    for image in images:
-        if image['file_name'] == file_name:
-            return image
-    return None
-
-
-def set_between(x, a, b):
-    da = x - a
-    db = x - b
-    if da * db <= 0:
-        return x
-    if abs(da) < abs(db):
-        return a
-    else:
-        return b
-
-
 def preprocess_box(box, im_w, im_h):
     box[2] += box[0]
     box[3] += box[1]
-    box[0] = set_between(box[0], 0, im_w)
-    box[1] = set_between(box[1], 0, im_h)
-    box[2] = set_between(box[2], 0, im_w)
-    box[3] = set_between(box[3], 0, im_h)
+    box[0] = clip(box[0], 0, im_w)
+    box[1] = clip(box[1], 0, im_h)
+    box[2] = clip(box[2], 0, im_w)
+    box[3] = clip(box[3], 0, im_h)
     box[:] = [round(b) for b in box]
 
 
@@ -85,7 +53,7 @@ def get_images_to_draw(json_dict, images_folder, images_files_to_draw=None, imag
         images_to_draw = list()
         for image_file_to_draw in images_files_to_draw:
             image_name = os.path.relpath(image_file_to_draw, images_folder)
-            images_to_draw.append(find_image_by_name(images, image_name))
+            images_to_draw.append(find_image_by_name(json_dict, image_name))
     elif images_number:
         if only_with_boxes:
             images_idxs = get_images_idxs_with_boxes(json_dict, threshold)
@@ -106,8 +74,8 @@ def get_images_to_draw(json_dict, images_folder, images_files_to_draw=None, imag
 def draw_boxes(json_dict, images_folder, out_folder, images_files_to_draw=None, images_number=None, random=False,
                only_with_boxes=False, preserve_files_tree=False, threshold=0.):
     Path(out_folder).mkdir(parents=True, exist_ok=True)
-    image_id_to_annotations_idxs = get_image_id_to_annotations_idxs(json_dict['images'], json_dict['annotations'])
-    category_id_to_name = get_category_id_to_name(json_dict['categories'])
+    image_id_to_annotations = get_image_id_to_annotations(json_dict)
+    category_id_to_name = get_category_id_to_name(json_dict)
     images_to_draw = get_images_to_draw(json_dict, images_folder, images_files_to_draw, images_number, random, only_with_boxes,
                                         threshold)
     if images_to_draw is None:
@@ -115,9 +83,8 @@ def draw_boxes(json_dict, images_folder, out_folder, images_files_to_draw=None, 
     uniquer = UniquePathsNamesGenerator()
     for image in tqdm(images_to_draw):
         im = Image.open(os.path.join(images_folder, image['file_name']))
-        annotations_idxs = image_id_to_annotations_idxs[image['id']]
-        for annotation_idx in annotations_idxs:
-            ann = json_dict['annotations'][annotation_idx]
+        annotations = image_id_to_annotations[image['id']]
+        for ann in annotations:
             score_str = ''
             if 'score' in ann.keys():
                 score_str = ' ' + str(ann['score'])[:4]
@@ -130,7 +97,7 @@ def draw_boxes(json_dict, images_folder, out_folder, images_files_to_draw=None, 
             if (box[0] >= box[2]) or (box[1] >= box[3]):
                 continue
             im_draw = ImageDraw.Draw(im)
-            width = int(max(im.size)/800) + 1
+            width = int(max(im.size)/1300) + 1
             im_draw.rectangle(box, outline='red', width=width)
             font_size = int(max(im.size)/100) + 10
             font = ImageFont.truetype('Pillow/Tests/fonts/FreeMono.ttf', font_size)

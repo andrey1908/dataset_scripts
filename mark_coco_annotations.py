@@ -13,7 +13,7 @@ def build_parser():
 
 def mark_coco_annotations(annotations, field, value):
     for ann in annotations:
-        ann[field] = value
+        ann[field] = eval(value)
 
 
 if __name__ == '__main__':
@@ -21,6 +21,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open(args.json_file, 'r') as f:
         json_dict = json.load(f)
+    print(type(eval(args.value)))
     mark_coco_annotations(json_dict['annotations'], args.field, args.value)
     with open(args.out_file, 'w') as f:
         json.dump(json_dict, f, indent=2)

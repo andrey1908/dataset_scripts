@@ -37,7 +37,7 @@ def reindex_annotations(annotations, old_image_id_to_new, old_cat_id_to_new):
         annotations[i]['category_id'] = old_cat_id_to_new[annotations[i]['category_id']]
 
 
-def reindex_json(json_dict):
+def reindex_coco(json_dict):
     old_cat_id_to_new = reindex_categories(json_dict['categories'])
     old_image_id_to_new = reindex_images(json_dict['images'])
     reindex_annotations(json_dict['annotations'], old_image_id_to_new, old_cat_id_to_new)
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open(args.json_file, 'r') as f:
         json_dict = json.load(f)
-    reindex_json(json_dict)
+    reindex_coco(json_dict)
     with open(args.out_file, 'w') as f:
         json.dump(json_dict, f, indent=2)
 

@@ -2,6 +2,7 @@ import argparse
 import os
 import json
 from pathlib import Path
+from utils.coco_tools import get_image_id_to_annotations_idxs
 
 
 def build_parser():
@@ -14,30 +15,22 @@ def build_parser():
     return parser
 
 
-def get_img_id_to_anns(images, annotations):
-    img_id_to_anns = dict()
-    for image in images:
-        img_id_to_anns[image['id']] = list()
-    for annotation in annotations:
-        img_id_to_anns[annotation['image_id']].append(annotation)
-    return img_id_to_anns
-
-
 def coco2darknet(json_file, images_root_folder, out_list_file, out_annotations_folder, root_folder):
     with open(json_file, 'r') as f:
         json_dict = json.load(f)
     images = json_dict['images']
-    img_id_to_anns = get_img_id_to_anns(json_dict['images'], json_dict['annotations'])
+    image_id_to_annotations_idxs = get_image_id_to_annotations_idxs(json_dict)
     out_list = list()
     Path(out_annotations_folder).mkdir(parents=True, exist_ok=True)
     for image in images:
         out_list.append(os.path.relpath(os.path.join(images_root_folder, image['file_name']), root_folder) + '\n')
         lines = list()
-        for annotation in img_id_to_anns[image['id']]:
+        for annotation_idx in image_id_to_annotations_idxs[image['id']]:
+            annotation = json_dict['annotations'][annotation_idx]
             line = '{} {} {} {} {}\n'.format(annotation['category_id']-1,
-                                           (annotation['bbox'][0] + annotation['bbox'][2]/2)/image['width'],
-                                           (annotation['bbox'][1] + annotation['bbox'][3]/2)/image['height'],
-                                           annotation['bbox'][2]/image['width'], annotation['bbox'][3]/image['height'])
+                                             (annotation['bbox'][0] + annotation['bbox'][2]/2)/image['width'],
+                                             (annotation['bbox'][1] + annotation['bbox'][3]/2)/image['height'],
+                                             annotation['bbox'][2]/image['width'], annotation['bbox'][3]/image['height'])
             lines.append(line)
         if len(lines) > 0:
             lines[-1] = lines[-1][:-1]

@@ -30,7 +30,7 @@ if __name__ == '__main__':
         json_dict = json.load(f)
     field_values_num = count_coco_annotations_field_values(json_dict['annotations'], args.field)
     without_that_field = None
-    for value, num in field_values_num.items():
+    for value, num in sorted(field_values_num.items()):
         if value == 'without that field':
             without_that_field = num
             continue

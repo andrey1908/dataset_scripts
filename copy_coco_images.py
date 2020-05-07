@@ -13,7 +13,7 @@ def build_parser():
     return parser
 
 
-def copy_json_images(json_dict, images_folder, copy_to_folder):
+def copy_coco_images(json_dict, images_folder, copy_to_folder):
     for image in tqdm(json_dict['images']):
         file_name_from = os.path.join(images_folder, image['file_name'])
         file_name_to = os.path.join(copy_to_folder, image['file_name'])
@@ -25,5 +25,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open(args.json_file, 'r') as f:
         json_dict = json.load(f)
-    copy_json_images(json_dict, args.images_folder, args.copy_to_folder)
+    copy_coco_images(json_dict, args.images_folder, args.copy_to_folder)
 
