@@ -9,4 +9,3 @@ from .test_frame_context_name import TestFrameContextName
 from .test_boxes2d_id import TestBoxes2DId
 
 __all__ = ['WAYMO_PARSERS_REGISTRY']
-

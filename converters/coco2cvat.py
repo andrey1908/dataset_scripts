@@ -2,7 +2,7 @@ import xml.etree.ElementTree as xml
 import json
 import argparse
 from xml.dom import minidom
-from utils.coco_tools import get_image_id_to_annotations_idxs
+from dataset_scripts.utils.coco_tools import get_image_id_to_annotations_idxs
 
 
 def build_parser():

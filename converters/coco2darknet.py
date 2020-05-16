@@ -2,7 +2,7 @@ import argparse
 import os
 import json
 from pathlib import Path
-from utils.coco_tools import get_image_id_to_annotations_idxs
+from dataset_scripts.utils.coco_tools import get_image_id_to_annotations_idxs
 
 
 def build_parser():

@@ -1,6 +1,5 @@
 import os
 import argparse
-import numpy as np
 from tqdm import tqdm
 from PIL import Image
 import json
