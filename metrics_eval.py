@@ -4,9 +4,10 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import json
-
+import threading
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
+from dataset_scripts.utils.coco_tools import leave_boxes
 
 
 def build_parser():
@@ -14,6 +15,7 @@ def build_parser():
     parser.add_argument('-ann', '--annotations-file', required=True, type=str)
     parser.add_argument('-det', '--detections-file', required=True, type=str)
     parser.add_argument('-area', '--area', nargs=2, type=str, default=['0**2', '1e5**2'])
+    parser.add_argument('-shape', '--shape', nargs=2, type=int, default=(None, None))
     return parser
 
 
@@ -28,11 +30,12 @@ PR_CURVES = [
 
 class Params:
 
-    def __init__(self, gt, iouType, area=(0**2, 1e5**2)):
+    iouThrs = [0.5, 0.6, 0.7, 0.8, 0.9]
+
+    def __init__(self, gt, iouType):
         """
         iouType - one of 'bbox', 'segm'
         """
-        area = list(area)
         # список id изображений для подсчета метрик
         # пустой - использовать все
         self.imgIds = []
@@ -40,18 +43,14 @@ class Params:
         self.classes = []
 
         # пороги IoU
-        self.iouThrs = np.array([0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95])
+        self.iouThrs = np.array(Params.iouThrs)
 
         # площади объектов, для которых будут вычислeны метрики
         self.areas = {
-            "custom": area,
-            "all": [0 ** 2, 1e5 ** 2],
-            "small": [0 ** 2, 32 ** 2],
-            "medium": [32 ** 2, 96 ** 2],
-            "large": [96 ** 2, 1e5 ** 2]
+            "all": [0**2, 1e5**2]
         }
 
-        self.maxDets = [1, 10, 100]
+        self.maxDets = [100]
 
         # остальное, как правило, нет причин менять
         self.id_to_class = {cat_id: cat["name"] for cat_id, cat in gt.cats.items()}
@@ -184,12 +183,12 @@ def score_filter(dt_json, args):
     return dt_json_new
 
 
-def evaluate_detections(annotations_file, detections_file, area=(0**2, 1e5**2)):
+def evaluate_detections(annotations_file, detections_file):
     coco_gt = COCO(annotations_file)
     with open(detections_file) as f:
         dt_json = json.load(f)
     coco_dt = coco_gt.loadRes(dt_json)
-    params = Params(coco_gt, iouType='bbox', area=area)
+    params = Params(coco_gt, iouType='bbox')
     metrics = detection_metrics(coco_gt, coco_dt, params)
     return metrics
 
@@ -203,7 +202,7 @@ def get_classes(metrics):
 
 
 def extract_mAP(metrics, iouThrs=0.5):
-    permitted_iouThrs = (0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95)
+    permitted_iouThrs = Params.iouThrs
     iouThrs_type = type(iouThrs)
     if iouThrs_type in (float, int):
         iouThrs = (iouThrs,)
@@ -211,7 +210,7 @@ def extract_mAP(metrics, iouThrs=0.5):
         assert iouThr in permitted_iouThrs
 
     indexed = metrics.set_index(["area", "maxDet"])
-    area = 'custom'
+    area = 'all'
     maxDet = 100
     mAPs = []
     for iouThr in iouThrs:
@@ -230,12 +229,12 @@ def extract_AP(metrics, classes, iouThrs=0.5):
     if classes_type in (str,):
         classes = (classes,)
 
-    permitted_iouThrs = (0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95)
+    permitted_iouThrs = Params.iouThrs
     for iouThr in iouThrs:
         assert iouThr in permitted_iouThrs
 
     APs = []
-    area = 'custom'
+    area = 'all'
     maxDet = 100
     for cl in classes:
         APs_cl = []
@@ -266,13 +265,13 @@ def extract_precision(metrics, classes, iouThrs=0.5, scoreThrs=0.5):
     if scoreThrs_type in (float, int):
         scoreThrs = (scoreThrs,)
 
-    permitted_iouThrs = (0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95)
+    permitted_iouThrs = Params.iouThrs
     for iouThr in iouThrs:
         assert iouThr in permitted_iouThrs
     existing_scoreThrs = np.linspace(.0, 1.00, np.round((1.00 - .0) / .01) + 1, endpoint=True)
 
     precisions = []
-    area = 'custom'
+    area = 'all'
     maxDet = 100
     for cl in classes:
         precisions_cl = []
@@ -312,13 +311,13 @@ def extract_recall(metrics, classes, iouThrs=0.5, scoreThrs=0.5):
     if scoreThrs_type in (float, int):
         scoreThrs = (scoreThrs,)
 
-    permitted_iouThrs = (0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95)
+    permitted_iouThrs = Params.iouThrs
     for iouThr in iouThrs:
         assert iouThr in permitted_iouThrs
     existing_scoreThrs = np.linspace(.0, 1.00, np.round((1.00 - .0) / .01) + 1, endpoint=True)
 
     recalls = []
-    area = 'custom'
+    area = 'all'
     maxDet = 100
     for cl in classes:
         recalls_cl = []
@@ -355,7 +354,7 @@ def get_optimal_score_threshold(metrics, classes, iouThrs=0.5):
     if classes_type in (str,):
         classes = (classes,)
 
-    permitted_iouThrs = (0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95)
+    permitted_iouThrs = Params.iouThrs
     for iouThr in iouThrs:
         assert iouThr in permitted_iouThrs
 
@@ -367,7 +366,7 @@ def get_optimal_score_threshold(metrics, classes, iouThrs=0.5):
     metrics_thrs = Params(gt(), iouType='bbox').recThrs
 
     opt_thrs = []
-    area = 'custom'
+    area = 'all'
     maxDet = 100
     for iouThr in iouThrs:
         opt_thrs_iouThr = []
@@ -400,33 +399,39 @@ def get_optimal_score_threshold(metrics, classes, iouThrs=0.5):
     return opt_thrs
 
 
-def print_metrics(annotations_file, detections_file, area=(0**2, 1e5**2)):
+def write_json_dict(json_dict, w):
+    with open(w, 'w') as f:
+        json.dump(json_dict, f)
+
+
+def print_metrics(annotations_file, detections_file, area=(0**2, 1e5**2), shape=(None, None)):
     if area[1] == -1:
         area = (area[0], 1e5**2)
-    metrics = evaluate_detections(annotations_file, detections_file, area)
+
+    with open(annotations_file, 'r') as f:
+        annotations_dict = json.load(f)
+    leave_boxes(annotations_dict, area=area, width=shape[0], height=shape[1])
+
+    with open(detections_file, 'r') as f:
+        detections_dict = json.load(f)
+    detections_dict_with_images = {'images': annotations_dict['images'], 'annotations': detections_dict}
+    leave_boxes(detections_dict_with_images, area=area, width=shape[0], height=shape[1])
+    detections_dict = detections_dict_with_images['annotations']
+
+    annotations_dict_r, annotations_dict_w = os.pipe()
+    annotations_dict_writing = threading.Thread(target=write_json_dict, args=(annotations_dict, annotations_dict_w))
+    annotations_dict_writing.start()
+    detections_dict_r, detections_dict_w = os.pipe()
+    detections_dict_writing = threading.Thread(target=write_json_dict, args=(detections_dict, detections_dict_w))
+    detections_dict_writing.start()
+    metrics = evaluate_detections(annotations_dict_r, detections_dict_r)
     classes = get_classes(metrics)
     iouThrs=[0.5, 0.7, 0.9]
-    APs = extract_AP(metrics, classes, iouThrs)
     mAPs = extract_mAP(metrics, iouThrs)
     print('IOU mAP')
     for mAP, iouThr in zip(mAPs, iouThrs):
         print('{:3} {:10}'.format(iouThr, mAP))
     print('')
-    
-    print('traffic_light')
-    idx = classes.index('traffic_light')
-    print('IOU AP')
-    for AP, iouThr in zip(APs[idx], iouThrs):
-        print('{:3} {:10}'.format(iouThr, AP))
-    print('\nfor test')
-    mAP70 = extract_mAP(metrics, 0.70)
-    print('mAP70 = {}'.format(mAP70))
-    AP70 = extract_AP(metrics, 'traffic_light', 0.70)
-    print('AP70 = {}'.format(AP70))
-
-    recall = extract_precision(metrics, 'traffic_light', [0.5, 0.70, 0.85, 0.95], [0.1, 0.7])
-    print('recall = {} {}'.format(recall[0][0][0], recall[0][1][0]))
-    print(recall)
 
 
 if __name__ == "__main__":
@@ -434,3 +439,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.area = list(map(eval, args.area))
     print_metrics(**vars(args))
+
