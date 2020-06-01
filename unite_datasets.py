@@ -16,6 +16,7 @@ def build_parser():
     parser.add_argument('-out', '--out-file', required=True, type=str)
     parser.add_argument('-out-img-fld', '--out-images-folder', required=True, type=str)
     parser.add_argument('-ml', '--make-links', action='store_true')
+    parser.add_argument('-co', '--copy-ok', action='store_true')
     return parser
 
 
@@ -42,7 +43,7 @@ def unite_categories(categories_list):
     return new_categories, old_category_id_to_new
 
 
-def unite_images(images_list, images_folders, out_images_folder, make_links):
+def unite_images(images_list, images_folders, out_images_folder, make_links=False, copy_ok=False):
     new_images = list()
     uniquer = UniquePathsNamesGenerator()
     old_image_id_to_new = list()
@@ -58,14 +59,19 @@ def unite_images(images_list, images_folders, out_images_folder, make_links):
             new_images.append(new_image)
             old_image_id_to_new_for_one[image['id']] = image_id
             image_id += 1
+            image_name_from = os.path.join(images_folders[i], image_name)
+            image_name_to = os.path.join(out_images_folder, new_image_name)
             if make_links:
                 try:
-                    os.link(os.path.join(images_folders[i], image_name), os.path.join(out_images_folder, new_image_name))
+                    os.link(image_name_from, image_name_to)
                 except:
-                    copyfile(os.path.join(images_folders[i], image_name), os.path.join(out_images_folder, new_image_name))
-                    making_link_errors_num += 1
+                    if copy_ok:
+                        copyfile(image_name_from, image_name_to)
+                        making_link_errors_num += 1
+                    else:
+                        raise RuntimeError('Could not make link for {} (consider using --copy-ok)'.format(image_name_from))
             else:
-                copyfile(os.path.join(images_folders[i], image_name), os.path.join(out_images_folder, new_image_name))
+                copyfile(image_name_from, image_name_to)
         old_image_id_to_new.append(old_image_id_to_new_for_one)  
         if make_links and (making_link_errors_num > 0):
             print('Could not make {} of {} links'.format(making_link_errors_num, len(images)))
@@ -88,11 +94,11 @@ def unite_annotations(annotations_list, old_image_id_to_new, old_category_id_to_
     return new_annotations
 
 
-def unite_datasets(json_dicts, images_folders, out_file, out_images_folder, make_links=False):
+def unite_datasets(json_dicts, images_folders, out_file, out_images_folder, make_links=False, copy_ok=False):
     assert(len(json_dicts) == len(images_folders))
     Path(out_images_folder).mkdir(parents=True, exist_ok=True)
     new_categories, old_category_id_to_new = unite_categories([json_dict['categories'] for json_dict in json_dicts])
-    new_images, old_image_id_to_new = unite_images([json_dict['images'] for json_dict in json_dicts], images_folders, out_images_folder, make_links)
+    new_images, old_image_id_to_new = unite_images([json_dict['images'] for json_dict in json_dicts], images_folders, out_images_folder, make_links, copy_ok)
     new_annotations = unite_annotations([json_dict['annotations'] for json_dict in json_dicts], old_image_id_to_new, old_category_id_to_new)
     json_dict = {'images': new_images, 'annotations': new_annotations, 'categories': new_categories}
     with open(out_file, 'w') as f:
@@ -108,5 +114,5 @@ if __name__ == '__main__':
         with open(json_file, 'r') as f:
             json_dict = json.load(f)
             json_dicts.append(json_dict)
-    unite_datasets(json_dicts, args.images_folders, args.out_file, args.out_images_folder, args.make_links)
+    unite_datasets(json_dicts, args.images_folders, args.out_file, args.out_images_folder, args.make_links, args.copy_ok)
 
