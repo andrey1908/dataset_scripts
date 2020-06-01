@@ -183,7 +183,23 @@ def score_filter(dt_json, args):
     return dt_json_new
 
 
-def evaluate_detections(annotations_file, detections_file):
+def write_json_dict(json_dict, w):
+    with open(w, 'w') as f:
+        json.dump(json_dict, f)
+
+
+def wrap(data):
+    if isinstance(data, (str, int)):
+        return data
+    read_f, write_f = os.pipe()
+    writing_thread = threading.Thread(target=write_json_dict, args=(data, write_f))
+    writing_thread.start()
+    return read_f
+
+
+def evaluate_detections(annotations, detections):
+    annotations_file = wrap(annotations)
+    detections_file = wrap(detections)
     coco_gt = COCO(annotations_file)
     with open(detections_file) as f:
         dt_json = json.load(f)
@@ -254,156 +270,6 @@ def extract_AP(metrics, classes, iouThrs=0.5):
     return APs
 
 
-def extract_precision(metrics, classes, iouThrs=0.5, scoreThrs=0.5):
-    iouThrs_type = type(iouThrs)
-    if iouThrs_type in (float, int):
-        iouThrs = (iouThrs,)
-    classes_type = type(classes)
-    if classes_type in (str,):
-        classes = (classes,)
-    scoreThrs_type = type(scoreThrs)
-    if scoreThrs_type in (float, int):
-        scoreThrs = (scoreThrs,)
-
-    permitted_iouThrs = Params.iouThrs
-    for iouThr in iouThrs:
-        assert iouThr in permitted_iouThrs
-    existing_scoreThrs = np.linspace(.0, 1.00, np.round((1.00 - .0) / .01) + 1, endpoint=True)
-
-    precisions = []
-    area = 'all'
-    maxDet = 100
-    for cl in classes:
-        precisions_cl = []
-        for iouThr in iouThrs:
-            precisions_iouThr = []
-            cl_idxes = [idx for idx, value in enumerate(metrics['class']) if value == cl]
-            area_idxes = [idx for idx, value in enumerate(metrics['area']) if value == area and idx in cl_idxes]
-            maxDet_idxes = [idx for idx, value in enumerate(metrics['maxDet']) if value == maxDet and idx in area_idxes]
-            iouThr_idxes = [idx for idx, value in enumerate(metrics['iouThr']) if
-                            value == iouThr and idx in maxDet_idxes]
-            assert len(iouThr_idxes) == 1
-            idx = iouThr_idxes[0]
-            for scoreThr in scoreThrs:
-                i = abs(existing_scoreThrs - scoreThr).argmin()
-                precisions_iouThr.append(metrics['precision'][idx][i])
-            precisions_cl.append(precisions_iouThr)
-        precisions.append(precisions_cl)
-
-    # if classes_type in (str,):
-    #     precisions = precisions[0]
-    # if iouThrs_type in (float, int):
-    #     if classes_type in (str,):
-    #         precisions = precisions[0]
-    #     else:
-    #         precisions = [precisions[i][0] for i in range(len(precisions))]
-    return precisions
-
-
-def extract_recall(metrics, classes, iouThrs=0.5, scoreThrs=0.5):
-    iouThrs_type = type(iouThrs)
-    if iouThrs_type in (float, int):
-        iouThrs = (iouThrs,)
-    classes_type = type(classes)
-    if classes_type in (str,):
-        classes = (classes,)
-    scoreThrs_type = type(scoreThrs)
-    if scoreThrs_type in (float, int):
-        scoreThrs = (scoreThrs,)
-
-    permitted_iouThrs = Params.iouThrs
-    for iouThr in iouThrs:
-        assert iouThr in permitted_iouThrs
-    existing_scoreThrs = np.linspace(.0, 1.00, np.round((1.00 - .0) / .01) + 1, endpoint=True)
-
-    recalls = []
-    area = 'all'
-    maxDet = 100
-    for cl in classes:
-        recalls_cl = []
-        for iouThr in iouThrs:
-            recalls_iouThr = []
-            cl_idxes = [idx for idx, value in enumerate(metrics['class']) if value == cl]
-            area_idxes = [idx for idx, value in enumerate(metrics['area']) if value == area and idx in cl_idxes]
-            maxDet_idxes = [idx for idx, value in enumerate(metrics['maxDet']) if value == maxDet and idx in area_idxes]
-            iouThr_idxes = [idx for idx, value in enumerate(metrics['iouThr']) if
-                            value == iouThr and idx in maxDet_idxes]
-            assert len(iouThr_idxes) == 1
-            idx = iouThr_idxes[0]
-            for scoreThr in scoreThrs:
-                i = abs(existing_scoreThrs - scoreThr).argmin()
-                recalls_iouThr.append(metrics['recall'][idx][i])
-            recalls_cl.append(recalls_iouThr)
-        recalls.append(recalls_cl)
-
-    # if classes_type in (str,):
-    #     precisions = precisions[0]
-    # if iouThrs_type in (float, int):
-    #     if classes_type in (str,):
-    #         precisions = precisions[0]
-    #     else:
-    #         precisions = [precisions[i][0] for i in range(len(precisions))]
-    return recalls
-
-
-def get_optimal_score_threshold(metrics, classes, iouThrs=0.5):
-    iouThrs_type = type(iouThrs)
-    if iouThrs_type in (float, int):
-        iouThrs = (iouThrs,)
-    classes_type = type(classes)
-    if classes_type in (str,):
-        classes = (classes,)
-
-    permitted_iouThrs = Params.iouThrs
-    for iouThr in iouThrs:
-        assert iouThr in permitted_iouThrs
-
-    class gt:
-        def __init__(self):
-            self.cats = dict()
-        def getImgIds(self):
-            return [0]
-    metrics_thrs = Params(gt(), iouType='bbox').recThrs
-
-    opt_thrs = []
-    area = 'all'
-    maxDet = 100
-    for iouThr in iouThrs:
-        opt_thrs_iouThr = []
-        for cl in classes:
-            cl_idxes = [idx for idx, value in enumerate(metrics['class']) if value == cl]
-            area_idxes = [idx for idx, value in enumerate(metrics['area']) if value == area and idx in cl_idxes]
-            maxDet_idxes = [idx for idx, value in enumerate(metrics['maxDet']) if value == maxDet and idx in area_idxes]
-            iouThr_idxes = [idx for idx, value in enumerate(metrics['iouThr']) if
-                            value == iouThr and idx in maxDet_idxes]
-            assert len(iouThr_idxes) == 1
-            idx = iouThr_idxes[0]
-            diff = 2  # >1
-            opt_thr = -1
-            for i in range(len(metrics['recall'][idx])):
-                new_diff = abs(metrics['recall'][idx][i] - metrics['precision'][idx][i])
-                if new_diff < diff:
-                    diff = new_diff
-                    opt_thr = metrics_thrs[i]
-            assert opt_thr != -1
-            opt_thrs_iouThr.append(opt_thr)
-        opt_thrs.append(opt_thrs_iouThr)
-
-    if iouThrs_type in (float, int):
-        opt_thrs = opt_thrs[0]
-    if classes_type in (str,):
-        if iouThrs_type in (float, int):
-            opt_thrs = opt_thrs[0]
-        else:
-            opt_thrs = [opt_thrs[i][0] for i in range(len(opt_thrs))]
-    return opt_thrs
-
-
-def write_json_dict(json_dict, w):
-    with open(w, 'w') as f:
-        json.dump(json_dict, f)
-
-
 def print_metrics(annotations_file, detections_file, area=(0**2, 1e5**2), shape=(None, None)):
     if area[1] == -1:
         area = (area[0], 1e5**2)
@@ -418,13 +284,7 @@ def print_metrics(annotations_file, detections_file, area=(0**2, 1e5**2), shape=
     leave_boxes(detections_dict_with_images, area=area, width=shape[0], height=shape[1])
     detections_dict = detections_dict_with_images['annotations']
 
-    annotations_dict_r, annotations_dict_w = os.pipe()
-    annotations_dict_writing = threading.Thread(target=write_json_dict, args=(annotations_dict, annotations_dict_w))
-    annotations_dict_writing.start()
-    detections_dict_r, detections_dict_w = os.pipe()
-    detections_dict_writing = threading.Thread(target=write_json_dict, args=(detections_dict, detections_dict_w))
-    detections_dict_writing.start()
-    metrics = evaluate_detections(annotations_dict_r, detections_dict_r)
+    metrics = evaluate_detections(annotations_dict, detections_dict)
     classes = get_classes(metrics)
     iouThrs=[0.5, 0.7, 0.9]
     mAPs = extract_mAP(metrics, iouThrs)
