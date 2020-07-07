@@ -60,7 +60,7 @@ def get_images_to_draw(json_dict, images_folder, images_files_to_draw=None, imag
         else:
             images_idxs = list(range(len(images)))
         if images_number > len(images_idxs):
-            raise RuntimeError('There aren\'t so many images to draw on. Maximum {} images.'.format(len(images_idxs)))
+            raise RuntimeError('There aren\'t so many images to draw. Maximum {} images.'.format(len(images_idxs)))
         if random:
             np.random.shuffle(images_idxs)
         images_to_draw = list()
