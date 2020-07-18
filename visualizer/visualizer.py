@@ -22,12 +22,14 @@ def build_parser():
 class Visualizer(QWidget):
     def __init__(self, json_dict, images_folder, window_width, window_height):
         super(Visualizer, self).__init__()
-        self.image_selector = ImageSelector(json_dict, images_folder, show_delay=True)
         self.threshold_selector = ThresholdSelector(show_delay=True)
+        self.image_selector = ImageSelector(json_dict, images_folder,
+                                            self.threshold_selector.get_current_threshold(), show_delay=True)
         self.viewer = Viewer(window_width, window_height)
         self.painter = Painter(json_dict, images_folder, self.image_selector.get_current_image_idx(),
                                self.threshold_selector.get_current_threshold())
         self.image_selector.imageChanged.connect(self.painter.new_image)
+        self.threshold_selector.thresholdChanged.connect(self.image_selector.new_threshold)
         self.threshold_selector.thresholdChanged.connect(self.painter.new_threshold)
         self.painter.boxesDrawn.connect(self.viewer.set_pixmap)
         self.init_UI()
