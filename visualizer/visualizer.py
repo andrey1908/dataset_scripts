@@ -31,9 +31,9 @@ class Visualizer(QWidget):
         self.image_selector.imageChanged.connect(self.painter.new_image)
         self.threshold_selector.thresholdChanged.connect(self.image_selector.new_threshold)
         self.threshold_selector.thresholdChanged.connect(self.painter.new_threshold)
-        self.painter.boxesDrawn.connect(self.viewer.set_pixmap)
+        self.painter.boxesDrawn.connect(self.viewer.set_scene)
         self.init_UI()
-        self.painter.draw()
+        self.painter.draw(reset_scale=True)
 
     def init_UI(self):
         vbox = QVBoxLayout()
