@@ -288,9 +288,15 @@ def print_metrics(annotations_file, detections_file, area=(0**2, 1e5**2), shape=
     classes = get_classes(metrics)
     iouThrs=[0.5, 0.7, 0.9]
     mAPs = extract_mAP(metrics, iouThrs)
-    print('IOU mAP')
-    for mAP, iouThr in zip(mAPs, iouThrs):
+    print('IoU mAP')
+    for iouThr, mAP in zip(iouThrs, mAPs):
         print('{:3} {:10}'.format(iouThr, mAP))
+    print('')
+    
+    APs = extract_AP(metrics, classes, 0.5)
+    print('class AP (IoU=0.5)')
+    for cl, AP in zip(classes, APs):
+        print('{:20} {:10}'.format(cl, AP))
     print('')
 
 

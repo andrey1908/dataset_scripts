@@ -3,6 +3,7 @@ from PyQt5.QtGui import QIntValidator
 from PyQt5.QtCore import pyqtSignal
 from dataset_scripts.utils.coco_tools import get_category_name_to_id, get_image_id_to_annotations
 from time import time
+import os.path as osp
 
 
 class ImageSelector(QGroupBox):
@@ -31,6 +32,7 @@ class ImageSelector(QGroupBox):
     def init_UI(self):
         self.images_number_label = QLabel()
         self.images_number_label.setText('{} images'.format(self.images_number))
+        self.current_image_name_label = QLabel()
         self.prev_button = QPushButton('Prev')
         self.next_button = QPushButton('Next')
         self.current_image_idx_line_edit = QLineEdit()
@@ -42,12 +44,16 @@ class ImageSelector(QGroupBox):
         self.only_with_boxes_check_box = QCheckBox()
         self.only_with_boxes_check_box.setText('Only with boxes')
         self.only_with_these_categories_label = QLabel()
-        self.only_with_these_categories_label.setText('Only with these categories:')
+        self.only_with_these_categories_label.setText('Categories:')
         self.only_with_these_categories_line_edit = QLineEdit()
         self.apply_categories_filters_button = QPushButton('Apply')
 
         vbox = QVBoxLayout()
-        vbox.addWidget(self.images_number_label)
+
+        hbox = QHBoxLayout()
+        hbox.addWidget(self.images_number_label)
+        hbox.addWidget(self.current_image_name_label)
+        vbox.addLayout(hbox)
 
         hbox = QHBoxLayout()
         hbox.addWidget(self.prev_button)
@@ -68,6 +74,7 @@ class ImageSelector(QGroupBox):
         self.refresh_UI()
 
     def refresh_UI(self):
+        self.current_image_name_label.setText(osp.basename(self.json_dict['images'][self.current_image_idx]['file_name']))
         self.current_image_idx_line_edit.setText(str(self.current_image_idx))
 
     def new_threshold(self, threshold):

@@ -20,7 +20,7 @@ def get_images_shapes(json_dict, sort=False):
         images_shapes[shape] += 1
         w += image['width']
         h += image['height']
-    return images_shapes
+    return images_shapes, w/len(images), h/len(images)
 
 
 def get_min_area(json_dict):
@@ -66,11 +66,13 @@ if __name__ == '__main__':
     print("Images number: {}\n".format(img_num))
 
     print("Images shapes:")
-    images_shapes = get_images_shapes(json_dict)
+    images_shapes, av_w, av_h = get_images_shapes(json_dict)
     images_shapes_nums = list(images_shapes.items())
     images_shapes_nums.sort(key=lambda x: -x[1])
     for image_shape, num in images_shapes_nums:
         print(image_shape, " {}".format(num))
+    print("")
+    print("Average width and height: {} {}".format(av_w, av_h))
     print("")
 
     annotations_number = get_annotations_number(json_dict)

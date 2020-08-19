@@ -41,6 +41,13 @@ def get_category_id_to_name(json_dict):
     return category_id_to_name
 
 
+def get_category_name_to_id(json_dict):
+    category_name_to_id = dict()
+    for category in json_dict['categories']:
+        category_name_to_id[category['name']] = category['id']
+    return category_name_to_id
+
+
 def find_image_by_name(json_dict, file_name):
     for image in json_dict['images']:
         if image['file_name'] == file_name:
