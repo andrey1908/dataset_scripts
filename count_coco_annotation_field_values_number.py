@@ -9,7 +9,7 @@ def build_parser():
     return parser
 
 
-def count_coco_annotations_field_values(annotations, field):
+def count_coco_annotation_field_values_number(annotations, field):
     field_values_num = dict()
     field_values_num['without that field'] = 0
     for ann in annotations:
@@ -28,9 +28,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open(args.json_file, 'r') as f:
         json_dict = json.load(f)
-    field_values_num = count_coco_annotations_field_values(json_dict['annotations'], args.field)
+    fields_value_num = count_coco_annotation_field_values_number(json_dict['annotations'], args.field)
     without_that_field = None
-    for value, num in sorted(field_values_num.items()):
+    for value, num in sorted(fields_value_num.items()):
         if value == 'without that field':
             without_that_field = num
             continue
