@@ -13,7 +13,7 @@ def build_parser():
     return parser
 
 
-def make_coco_info(images_folder, root_folder):
+def make_coco_images(images_folder, root_folder):
     found_files, unknown_extensions = find_files(images_folder, ['.jpg', '.png'], ['.txt'])
     if len(unknown_extensions) > 0:
         print('Unknown extensions: {}'.format(unknown_extensions))
@@ -31,6 +31,6 @@ def make_coco_info(images_folder, root_folder):
 if __name__ == '__main__':
     parser = build_parser()
     args = parser.parse_args()
-    json_dict = make_coco_info(args.images_folder, args.root_folder)
+    json_dict = make_coco_images(args.images_folder, args.root_folder)
     with open(args.out_file, 'w') as f:
         json.dump(json_dict, f)
