@@ -1,113 +1,98 @@
-# dataset_scripts
-Репозиторий содержит скрипты, написанные на python3, для работы с файлаим разметки (в основном в формате COCO) и изображениями.
-\
-\
-\
-**converters/coco2darknet.py**\
-Конвертирует разметку из формата COCO в формат, используемый при обучении в darknet.
+# Dataset scripts
+This repository contains python3 scripts to work with annotation files (mainly in COCO format).
+
+Before using make sure that dataset_scripts folder is in your PYTHONPATH environment variable.
+
+## Converters
+
+Not all converters are described.
+
+**converters/coco2darknet.py**
+Converts COCO annotations to the format used to train networks in darknet repository.
 ```bash
-Параметры:
--json, --json-file                      - путь к файлу с разметкой
--img-root-fld, --images-root-folder     - путь к папке с изображениями из разметки
--out-list, --out-list-file              - путь к выходному файлу со списком путей к изображениям
--out-anns-fld, --out-annotations-folder - путь к папке, куда будут сохраненны файлы с конвертированной разметкой
--root-fld, --root-folder [default './'] - путь к папке, относительно которой будут задаваться пути к изображенияим, которые записываются в файл, указанный в параметре -out-list
+-json, --json-file                      - json file with COCO annotations
+-img-root-fld, --images-root-folder     - path to images folder
+-out-list, --out-list-file              - output file with list of images files
+-out-anns-fld, --out-annotations-folder - output folder to save converted annotations to
+-root-fld, --root-folder [default './'] - paths to images in output file '-out-list' are set relative to the directory specified in this parameter
 ```
-\
-\
-**coco_nms.py**\
-Реализует алгоритм NMS.
-```bash
-Параметры:
--json, --json-file - путь к файлу с разметкой
--thr, --threshold  - порог IoU для алгоритма NMS
--out, --out-file   - путь к выходному файлу
-```
-Для работы скрипта необходимо скомпилировать код nms.c в динамическую библиотеку nms.so
+
+## Dataset tools
+
+Not all dataset tools are described.
+
+**coco_nms.py**
+NMS (non-maximum suppression) algorithm.
+
+Before using this script compile nms.c into shared library nms.so:
 ```bash
 gcc nms.c -shared -fPIC -o nms.so
 ```
-\
-\
-**dataset_info.py**\
-Выводит некоторую информацию о датасете.
+
+Usage:
 ```bash
-Параметры:
--json, --json-file - пути к файлу с разметкой
+-json, --json-file - json file with COCO annotations
+-thr, --threshold  - IoU (intersection over union) threshold for NMS algorithm
+-out, --out-file   - output COCO annotation file
 ```
-\
-\
-**draw_boxes.py**\
-Отрисовывает боксы из разметки на изображениях.
+
+**dataset_info.py**
+Short summary about COCO annotation file.
 ```bash
-Параметры:
--json, --json-file                                     - путь к файлу с разметкой
--img-fld, --images-folder                              - путь к папке с изображениями
--out-fld, --out-folder                                 - путь к папке, куда будут сохраняться изображения с отрисованными на них боксами
--imgs-to-draw, --images-files-to-draw [optional]       - пути к изображениям (относительно текущей директории), на которых нужно отрисовать боксы
--num, --images-number [optional]                       - количество изображений, на которых нужно отрисовать боксы. Не имеет эффекта, если используется флаг -imgs-to-draw
--rnd, --random [optional]                              - если указан параметр -num, то для отрисовки будут выбраны случайные изображения, иначе первые
--owb, --only-with-boxes [optional]                     - если указан параметр -num, то для отрисовки не будут выбираться изображения без боксов
--img-json, --images-json-file [optional]               - если в качестве параметра -json указан файл с детекциями (без изображений и категорий), то в этом параметре нужно
-                                                         указать путь к файлу с изображениями и категориями
--preserve-files-tree, --preserve-files-tree [optional] - при сохранении отрисованных изображений будет сохраняться файловая структура изображений в исходном датасете,
-                                                         иначе все изображения будут сохряняться в одну папку, а изображения с одинаковыми именами будут переименовываться.
--thr, --threshold [default 0.]                         - если в аннотации есть поле score, то она будет отброшенна, если значение этого поля меньше значения данного параметра
+-json, --json-file - json file with COCO annotations
 ```
-Если не указан ни один из флагов **-imgs-to-draw** и **-num**, то будут отрисовываться все изображения в датасете.\
-\
-\
-**mark_coco_annotations.py**\
-Добавляет поле с указанным значением к аннотациям.
+
+**draw_boxes.py**
+Draw bounding boxes form COCO annotations on images.
 ```bash
-Параметры:
--json, --json-file - путь к файлу с разметкой
--f, --field        - название поля, которое нужно добавить
--v, --value        - значение добавляемого поля. К данному аргументу применяется метод eval()
---force [optional] - перезаписывать данные, если поле уже существует. Если не указывать данный флаг, то при обнаружении, что добавляемое поле уже существует,
-                     программа будет прерванна.
--out, --out-file   - путь к выходному файлу
+-json, --json-file                                     - json file with COCO annotations (this file may contain only boxes without images paths and categories; in that case json file with images paths and categories should be specified in parameter '-img-json' (see below))
+-img-fld, --images-folder                              - path to images folder
+-out-fld, --out-folder                                 - output folder to save images with drawn boxes to
+-imgs-to-draw, --images-files-to-draw [optional]       - images files to draw boxes on (relative to the current directory)
+-num, --images-number [optional]                       - number of images to draw boxes on (has on effect if '-imgs-to-draw' is specified)
+-rnd, --random [optional]                              - used in combination with '-num': select random images to draw on, otherwise first images are selected
+-owb, --only-with-boxes [optional]                     - used in combination with '-num': do not select images that have no boxes
+-img-json, --images-json-file [optional]               - json file with images paths and categories if '-json' does not contains that information
+-preserve-files-tree, --preserve-files-tree [optional] - preserve images files tree when saving images with drawn boxes, otherwise all images are saved in output directory '-out-fld' and if there are images with the same name, one of them is renamed
+-thr, --threshold [default 0.]                         - filter out boxes with score less than '-thr' (has no effect if annotations do not contain 'score' field)
 ```
-\
-\
-**metrics_eval.py**\
-Вычисляет метрики mAP и AP.
+If both **-imgs-to-draw** and **-num** are not specified then all the images are used to draw boxes on.
+
+**mark_coco_annotations.py**
+Add a field to COCO annotations with specified value.
 ```bash
-Параметры:
--ann, --annotations-file            - путь к файлу с аннотациями
--det, --detections-file             - путь к файлу с детекциями
--area, --area [default 0**2 1e5**2] - при вычислении метрик из детекций и аннотаций будут удалены боксы, площадь которых находится вне диапазона, указанного
-                                      в данном параметре (см. также параметр -shape). В качестве верхнего предела можно указать -1, что будет эквивалентно 1e5**2
--shape, --shape [default None None] - если используется значение по умолчанию (None None), то площадь боксов берется на исходном изображении. Если передать два числа,
-                                      то перед отбасыванием неподходящих по размеру боксов, изображение будет отмаштабированно с сохранением соотношения сторон так,
-                                      чтобы влазить в рамки с шириной и высотой, взятыми из параметра -shape. Площади боксов будут пересчитаны соответствующим образом.
+-json, --json-file - json file with COCO annotations
+-f, --field        - field name to add
+-v, --value        - value to add. eval() is applied to this parameter
+--force [optional] - rewrite field if it already exists. Without this flag the script will raise runtime error if it encounters already existing field
+-out, --out-file   - output COCO annotation file
 ```
-\
-\
-**remove_empty_images.py**\
-Удаляет из файла с разметкой изображения, для которых нет ни одной аннотации.
+
+**metrics_eval.py**
+Evaluates AP and mAP metrics for detection results.
 ```bash
-Параметры:
--json, --json-file - путь к файлу с разметкой
--out, --out-file   - путь к выходному файлу
+-ann, --annotations-file            - json file with COCO gt (shoud contain images paths and categories)
+-det, --detections-file             - json file with detection results in COCO format (should contain only detection results without images paths and categories)
+-area, --area [default 0**2 1e5**2] - remove boxes with area beyond this range
+-shape, --shape [default None None] - used in combination with '-area': before computing box area, image containing that box is scaled keeping aspect ratio so that this image is fitted into the (width, height) box specified in this parameter. The box on the image is scaled with the image and after that box area is computed
 ```
-\
-\
-**replace_classes.py**\
-Объединяет, удаляет, добавляет, переименовывает категории в файле с разметкой.
+
+**remove_empty_images.py**
+Removes images that contain no labels from COCO annotation file.
 ```bash
-Параметры (см. пример использования ниже):
--json, --json-file                               - путь к файлу с разметкой
--new-cats, --new-categories-names                - названия новых категорий, на которые будут заменены старые
--old-cat-name-to-new, --old-category-name-to-new - преобразование старых категорий в новые. Одно преобразование задается в формате old_category_name->new_category_name.
-                                                   Разные преобразования разделяются пробелом. Данный параметр принимает один арнумант, а не список аргументов,
-                                                   то есть все преобразования должны быть взяты в кавычки. Название категории new_category_name должно присутствовать в списке,
-                                                   передаваемом через парамерт -new-cats (см. пример ниже)
-                                                   В качестве аргумента также можно указать convert_all_categories (или conv_all_cats). В этом случае параметр -new-cats принимает
-                                                   только один аргумент и происходит конвертация всех категорий в разметке в одну категорию, переданную в параметре -new-cats
--out, --out-file                                 - путь к выходному файлу
+-json, --json-file - json file with COCO annotations
+-out, --out-file   - output COCO annotation file
 ```
-Например, если есть разметка с категорями **person**, **car** и **van**, и нужно преобразовать **person** в **pedestrian**, а **car** и **van** в **vehicle**, то используется следующая команда
+
+**replace_classes.py**
+Merges, removes, adds and renames categories in COCO annotation file (see usage example after parameters description).
+```bash
+-json, --json-file                               - json file with COCO annotations
+-new-cats, --new-categories-names                - new categories names
+-old-cat-name-to-new, --old-category-name-to-new - how to convert old category names to new ones. See example below. If special name convert_all_categories (or conv_all_cats) is specified, then '-new-cats' should contain only one category and all old categories are converted into that new one.
+-out, --out-file                                 - output COCO annotation file
+```
+For example, we have annotation file annotations.json with categories **person**, **car** and **van**, and we want to convert **person** to **pedestrian**, **car** and **van** to **vehicle**. To do this we can use:
 ```bash
 python replace_classes.py
     -json annotations.json
@@ -115,37 +100,30 @@ python replace_classes.py
     -old-cat-name-to-new 'person->pedestrian car->vehicle van->vehicle'
     -out new_annotations.json
 ```
-\
-\
-**split_coco.py**\
-Разбивает файл с разметкой на два. Перед разбиением изображения перемешиваются.
+
+**split_coco.py**
+Splits COCO annotation file into two files. Before splitting images are shuffled.
 ```bash
-Параметры:
--json, --json-file              - путь к файлу с разметкой
--train, --train-out-file        - путь к первому выходному файлу
--test, --test-out-file          - путь ко второму выходному файлу
--sr, --split-rate [default 0.8] - доля изображений в файле, который был передан в параметре -train
+-json, --json-file              - json file with COCO annotations
+-train, --train-out-file        - output COCO annotation file for training
+-test, --test-out-file          - output COCO annotation file for testing
+-sr, --split-rate [default 0.8] - share of images in output training file
 ```
-\
-\
-**unite_coco.py**\
-Объединяет несколько файлов с разметкой в один. Категории с одинаковыми названиями объединяются в одну. Изображения с одинаковым полем file_name объединяются в одно изображение.
+
+**unite_coco.py**
+Merges multiple COCO annotation files into one. Categories with the same name are merged into one. Images with the same field 'file_name' are merged.
 ```bash
-Параметры:
--jsons, --json-files - пути к файлам с разметкой
--out, --out-file     - путь к выходному файлу
+-jsons, --json-files - multiple json files with COCO annotations
+-out, --out-file     - output COCO annotation file
 ```
-\
-\
-**unite_datasets.py**\
-Объединяет несколько файлов с разметкой в один и копирует изображения из получившейся разметки в отдельную папку. Категории с одинаковыми названиями объединяются в одну.
-Если встречаются изображения с одинаковыми именами (именно именами, а не полем file_name), то одно из них переименовывается, чтобы не было изображений с одинаковыми именами.
+
+**unite_datasets.py**
+Merges multiple COCO annotation files into one and copies (or makes hard links) images into one directory. Categories with the same name are merged into one. If there are images with the same name, one of them is renamed.
 ```bash
-Параметры:
--jsons, --json-files              - пути к файлам с разметкой
--img-flds, --images-folders       - пути к папкам с изображениями из разметок, указанных в параметре -jsons
--out, --out-file                  - путь к выходному файлу с разметкой
--out-img-fld, --out-images-folder - путь к папке, куда будут помещаться изображения из получившейся разметки
--ml, --make-links [optional]      - делать жесткие ссылки на изображения, а не копировать их
--co, --copy-ok [optional]         - если не получилось создать жесткую ссылку, то не прерывать работу программы, а просто скопировать изображение
+-jsons, --json-files              - multiple json files with COCO annotations
+-img-flds, --images-folders       - multiple paths to images folders for each file in '-jsons' parameter
+-out, --out-file                  - output COCO annotation file
+-out-img-fld, --out-images-folder - output folder for images for merged dataset
+-ml, --make-links [optional]      - make hard links for images instead of copying them
+-co, --copy-ok [optional]         - used in combination with '-ml': if could not make hard link for the image, then do not raise runtime error and simply copy that image
 ```
