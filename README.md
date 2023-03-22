@@ -8,6 +8,7 @@ Before using make sure that dataset_scripts folder is in your PYTHONPATH environ
 Not all converters are described.
 
 **converters/coco2darknet.py**
+
 Converts COCO annotations to the format used to train networks in darknet repository.
 ```bash
 -json, --json-file                      - json file with COCO annotations
@@ -17,11 +18,13 @@ Converts COCO annotations to the format used to train networks in darknet reposi
 -root-fld, --root-folder [default './'] - paths to images in output file '-out-list' are set relative to the directory specified in this parameter
 ```
 
+
 ## Dataset tools
 
 Not all dataset tools are described.
 
 **coco_nms.py**
+
 NMS (non-maximum suppression) algorithm.
 
 Before using this script compile nms.c into shared library nms.so:
@@ -36,13 +39,17 @@ Usage:
 -out, --out-file   - output COCO annotation file
 ```
 
+
 **dataset_info.py**
+
 Short summary about COCO annotation file.
 ```bash
 -json, --json-file - json file with COCO annotations
 ```
 
+
 **draw_boxes.py**
+
 Draw bounding boxes form COCO annotations on images.
 ```bash
 -json, --json-file                                     - json file with COCO annotations (this file may contain only boxes without images paths and categories; in that case json file with images paths and categories should be specified in parameter '-img-json' (see below))
@@ -56,9 +63,11 @@ Draw bounding boxes form COCO annotations on images.
 -preserve-files-tree, --preserve-files-tree [optional] - preserve images files tree when saving images with drawn boxes, otherwise all images are saved in output directory '-out-fld' and if there are images with the same name, one of them is renamed
 -thr, --threshold [default 0.]                         - filter out boxes with score less than '-thr' (has no effect if annotations do not contain 'score' field)
 ```
-If both **-imgs-to-draw** and **-num** are not specified then all the images are used to draw boxes on.
+If both *-imgs-to-draw* and *-num* are not specified then all the images are used to draw boxes on.
+
 
 **mark_coco_annotations.py**
+
 Add a field to COCO annotations with specified value.
 ```bash
 -json, --json-file - json file with COCO annotations
@@ -68,7 +77,9 @@ Add a field to COCO annotations with specified value.
 -out, --out-file   - output COCO annotation file
 ```
 
+
 **metrics_eval.py**
+
 Evaluates AP and mAP metrics for detection results.
 ```bash
 -ann, --annotations-file            - json file with COCO gt (shoud contain images paths and categories)
@@ -77,14 +88,18 @@ Evaluates AP and mAP metrics for detection results.
 -shape, --shape [default None None] - used in combination with '-area': before computing box area, image containing that box is scaled keeping aspect ratio so that this image is fitted into the (width, height) box specified in this parameter. The box on the image is scaled with the image and after that box area is computed
 ```
 
+
 **remove_empty_images.py**
+
 Removes images that contain no labels from COCO annotation file.
 ```bash
 -json, --json-file - json file with COCO annotations
 -out, --out-file   - output COCO annotation file
 ```
 
+
 **replace_classes.py**
+
 Merges, removes, adds and renames categories in COCO annotation file (see usage example after parameters description).
 ```bash
 -json, --json-file                               - json file with COCO annotations
@@ -101,7 +116,9 @@ python replace_classes.py
     -out new_annotations.json
 ```
 
+
 **split_coco.py**
+
 Splits COCO annotation file into two files. Before splitting images are shuffled.
 ```bash
 -json, --json-file              - json file with COCO annotations
@@ -110,14 +127,18 @@ Splits COCO annotation file into two files. Before splitting images are shuffled
 -sr, --split-rate [default 0.8] - share of images in output training file
 ```
 
+
 **unite_coco.py**
+
 Merges multiple COCO annotation files into one. Categories with the same name are merged into one. Images with the same field 'file_name' are merged.
 ```bash
 -jsons, --json-files - multiple json files with COCO annotations
 -out, --out-file     - output COCO annotation file
 ```
 
+
 **unite_datasets.py**
+
 Merges multiple COCO annotation files into one and copies (or makes hard links) images into one directory. Categories with the same name are merged into one. If there are images with the same name, one of them is renamed.
 ```bash
 -jsons, --json-files              - multiple json files with COCO annotations
