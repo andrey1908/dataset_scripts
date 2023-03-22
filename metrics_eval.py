@@ -7,7 +7,7 @@ import json
 import threading
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
-from dataset_scripts.utils.coco_tools import leave_boxes
+from utils.coco_tools import leave_boxes
 
 
 def build_parser():

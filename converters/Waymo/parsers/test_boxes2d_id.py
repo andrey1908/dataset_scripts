@@ -1,6 +1,6 @@
 import os
 from waymo_open_dataset import dataset_pb2 as open_dataset
-from dataset_scripts.utils import Context
+from utils import Context
 from .registry import WAYMO_PARSERS_REGISTRY
 
 

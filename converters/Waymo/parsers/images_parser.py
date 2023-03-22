@@ -3,7 +3,7 @@ from pathlib import Path
 from PIL import Image
 import tensorflow as tf
 from waymo_open_dataset import dataset_pb2 as open_dataset
-from dataset_scripts.utils import Context
+from utils import Context
 from .registry import WAYMO_PARSERS_REGISTRY
 
 

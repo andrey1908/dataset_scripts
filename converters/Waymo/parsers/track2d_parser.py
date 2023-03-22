@@ -1,5 +1,5 @@
 import os
-from dataset_scripts.utils import Context
+from utils import Context
 from .registry import WAYMO_PARSERS_REGISTRY
 from pathlib import Path
 

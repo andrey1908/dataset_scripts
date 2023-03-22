@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QLineEdit, QLabel, QGroupBox, QPushButton, QHBoxLayout, QVBoxLayout, QCheckBox
 from PyQt5.QtGui import QIntValidator
 from PyQt5.QtCore import pyqtSignal
-from dataset_scripts.utils.coco_tools import get_category_name_to_id, get_image_id_to_annotations
+from utils.coco_tools import get_category_name_to_id, get_image_id_to_annotations
 from time import time
 import os.path as osp
 

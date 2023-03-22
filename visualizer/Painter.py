@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QGroupBox, QPushButto
 from PyQt5.QtGui import QPixmap, QPainter, QPen, QFont
 from PyQt5.QtCore import Qt, QObject, pyqtSignal
 from numpy import clip
-from dataset_scripts.utils.coco_tools import get_category_id_to_name, get_image_id_to_annotations
+from utils.coco_tools import get_category_id_to_name, get_image_id_to_annotations
 import os.path as osp
 
 

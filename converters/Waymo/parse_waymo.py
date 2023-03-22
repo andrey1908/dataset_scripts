@@ -4,7 +4,7 @@ import tensorflow as tf
 from tqdm import tqdm
 from waymo_open_dataset import dataset_pb2 as open_dataset
 from parsers import WAYMO_PARSERS_REGISTRY
-from dataset_scripts.utils import Context, ParsersWrapper, find_files
+from utils import Context, ParsersWrapper, find_files
 
 tf.enable_eager_execution()
 
