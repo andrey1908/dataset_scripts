@@ -6,6 +6,7 @@ Before using make sure that dataset_scripts folder is in your PYTHONPATH environ
 ## Converters
 
 Not all converters are described.
+___
 
 **converters/coco2darknet.py**
 
@@ -17,11 +18,12 @@ Converts COCO annotations to the format used to train networks in darknet reposi
 -out-anns-fld, --out-annotations-folder - output folder to save converted annotations to
 -root-fld, --root-folder [default './'] - paths to images in output file '-out-list' are set relative to the directory specified in this parameter
 ```
-
+___
 
 ## Dataset tools
 
 Not all dataset tools are described.
+___
 
 **coco_nms.py**
 
@@ -38,7 +40,7 @@ Usage:
 -thr, --threshold  - IoU (intersection over union) threshold for NMS algorithm
 -out, --out-file   - output COCO annotation file
 ```
-
+___
 
 **dataset_info.py**
 
@@ -46,7 +48,7 @@ Short summary about COCO annotation file.
 ```bash
 -json, --json-file - json file with COCO annotations
 ```
-
+___
 
 **draw_boxes.py**
 
@@ -64,7 +66,7 @@ Draw bounding boxes form COCO annotations on images.
 -thr, --threshold [default 0.]                         - filter out boxes with score less than '-thr' (has no effect if annotations do not contain 'score' field)
 ```
 If both *-imgs-to-draw* and *-num* are not specified then all the images are used to draw boxes on.
-
+___
 
 **mark_coco_annotations.py**
 
@@ -76,7 +78,7 @@ Add a field to COCO annotations with specified value.
 --force [optional] - rewrite field if it already exists. Without this flag the script will raise runtime error if it encounters already existing field
 -out, --out-file   - output COCO annotation file
 ```
-
+___
 
 **metrics_eval.py**
 
@@ -87,7 +89,7 @@ Evaluates AP and mAP metrics for detection results.
 -area, --area [default 0**2 1e5**2] - remove boxes with area beyond this range
 -shape, --shape [default None None] - used in combination with '-area': before computing box area, image containing that box is scaled keeping aspect ratio so that this image is fitted into the (width, height) box specified in this parameter. The box on the image is scaled with the image and after that box area is computed
 ```
-
+___
 
 **remove_empty_images.py**
 
@@ -96,7 +98,7 @@ Removes images that contain no labels from COCO annotation file.
 -json, --json-file - json file with COCO annotations
 -out, --out-file   - output COCO annotation file
 ```
-
+___
 
 **replace_classes.py**
 
@@ -115,7 +117,7 @@ python replace_classes.py
     -old-cat-name-to-new 'person->pedestrian car->vehicle van->vehicle'
     -out new_annotations.json
 ```
-
+___
 
 **split_coco.py**
 
@@ -126,7 +128,7 @@ Splits COCO annotation file into two files. Before splitting images are shuffled
 -test, --test-out-file          - output COCO annotation file for testing
 -sr, --split-rate [default 0.8] - share of images in output training file
 ```
-
+___
 
 **unite_coco.py**
 
@@ -135,7 +137,7 @@ Merges multiple COCO annotation files into one. Categories with the same name ar
 -jsons, --json-files - multiple json files with COCO annotations
 -out, --out-file     - output COCO annotation file
 ```
-
+___
 
 **unite_datasets.py**
 
