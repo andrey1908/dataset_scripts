@@ -172,7 +172,7 @@ remapped_class_name_to_id = \
 
 
 def get_masks(label):
-    objects = set(label.ravel())
+    objects = np.unique(label)
     masks = list()
     for obj in objects:
         class_id = ((obj >> 8) & 0xFF)
@@ -181,8 +181,7 @@ def get_masks(label):
             continue
         remapped_class_id = remapped_class_name_to_id[classes_remap[class_name]]
         mask = np.zeros(label.shape, dtype=np.uint8)
-        roi = (obj == label)
-        mask[roi] = 1
+        mask[label == obj] = 255
         masks.append((remapped_class_id, mask))
     return masks
 
