@@ -7,7 +7,7 @@ import json
 import threading
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
-from utils.coco_tools import leave_boxes
+from utils.coco_tools import retain_boxes
 
 
 def build_parser():
@@ -276,12 +276,12 @@ def print_metrics(annotations_file, detections_file, area=(0**2, 1e5**2), shape=
 
     with open(annotations_file, 'r') as f:
         annotations_dict = json.load(f)
-    leave_boxes(annotations_dict, area=area, width=shape[0], height=shape[1])
+    retain_boxes(annotations_dict, area=area, width=shape[0], height=shape[1])
 
     with open(detections_file, 'r') as f:
         detections_dict = json.load(f)
     detections_dict_with_images = {'images': annotations_dict['images'], 'annotations': detections_dict}
-    leave_boxes(detections_dict_with_images, area=area, width=shape[0], height=shape[1])
+    retain_boxes(detections_dict_with_images, area=area, width=shape[0], height=shape[1])
     detections_dict = detections_dict_with_images['annotations']
 
     metrics = evaluate_detections(annotations_dict, detections_dict)

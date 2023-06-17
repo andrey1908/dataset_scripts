@@ -1,6 +1,6 @@
 import argparse
 import json
-from utils.coco_tools import leave_annotations
+from utils.coco_tools import retain_annotations
 
 
 def build_parser():
@@ -17,7 +17,7 @@ def remove_low_scored_boxes(json_dict, threshold):
         if json_dict['annotations'][i]['score'] >= threshold:
             idxs_to_leave.append(i)
     removed = len(json_dict['annotations']) - len(idxs_to_leave)
-    leave_annotations(json_dict['annotations'], idxs_to_leave)
+    retain_annotations(json_dict['annotations'], idxs_to_leave)
     return removed
 
 

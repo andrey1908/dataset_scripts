@@ -55,7 +55,7 @@ def find_image_by_name(json_dict, file_name):
     return None
 
 
-def leave_annotations(annotations, idxs_to_leave):
+def retain_annotations(annotations, idxs_to_leave):
     np_annotations = np.array(annotations)
     annotations[:] = np_annotations[idxs_to_leave]
     annotation_id = 1
@@ -64,7 +64,7 @@ def leave_annotations(annotations, idxs_to_leave):
         annotation_id += 1
 
 
-def leave_boxes(json_dict, area, width=None, height=None):
+def retain_boxes(json_dict, area, width=None, height=None):
     if area[1] == -1:
         area = (area[0], 1e5**2)
     if (width is not None) and (height is not None):
@@ -84,6 +84,6 @@ def leave_boxes(json_dict, area, width=None, height=None):
         if (S >= area[0]) and (S <= area[1]):
             idxs_to_leave.append(i)
     removed = len(json_dict['annotations']) - len(idxs_to_leave)
-    leave_annotations(json_dict['annotations'], idxs_to_leave)
+    retain_annotations(json_dict['annotations'], idxs_to_leave)
     return removed
 

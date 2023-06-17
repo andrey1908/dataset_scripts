@@ -2,7 +2,7 @@ import ctypes
 import argparse
 import json
 import os
-from utils.coco_tools import get_image_id_to_annotations_idxs, leave_annotations
+from utils.coco_tools import get_image_id_to_annotations_idxs, retain_annotations
 
 
 class Box(ctypes.Structure):
@@ -49,7 +49,7 @@ def coco_nms(json_dict, threshold):
                 idxs_to_leave.append(box.idx)
 
     removed = len(json_dict['annotations']) - len(idxs_to_leave)
-    leave_annotations(json_dict['annotations'], idxs_to_leave)
+    retain_annotations(json_dict['annotations'], idxs_to_leave)
     return removed
 
 
