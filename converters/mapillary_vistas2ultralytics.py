@@ -172,7 +172,10 @@ remapped_class_name_to_id = \
 
 
 def get_masks(label):
+    global zero_is_background
     objects = np.unique(label)
+    if zero_is_background:
+        objects = objects[objects != 0]
     masks = list()
     for obj in objects:
         class_id = ((obj >> 8) & 0xFF)
@@ -251,6 +254,8 @@ def parse_folder(path, out_path):
     print(success)
     print(total)
 
+
+zero_is_background = False
 
 path = "/media/cds-jetson-host/data/Mapillary/An_o5cmHOsS1VbLdaKx_zfMdi0No5LUpL2htRxMwCjY_bophtOkM0-6yTKB2T2sa0yo1oP086sqiaCjmNEw5d_pofWyaE9LysYJagH8yXw_GZPzK2wfiQ9u4uAKrVcEIrkJiVuTn7JBumrA"
 train_path = osp.join(path, "training")
