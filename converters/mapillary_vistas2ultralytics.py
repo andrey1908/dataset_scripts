@@ -187,13 +187,11 @@ def get_masks(label):
 
 
 def to_single_polygon(polygons):
-    if len(polygons) == 1:
-        return polygons[0]
-
-    single_polygon = np.empty((0, 1, 2))
-    for polygon in polygons:
+    single_polygon = polygons[0].astype(float)
+    joint = np.full((1, 1, 2), np.nan)
+    for polygon in polygons[1:]:
         single_polygon = \
-            np.concatenate((single_polygon, polygon, polygon[:1, :, :]), axis=0)
+            np.concatenate((single_polygon, joint, polygon.astype(float)), axis=0)
     return single_polygon
 
 
@@ -216,7 +214,7 @@ def save_polygons(path, polygons, width, height):
         out += f"{class_id}"
         x = polygon[:, 0, 0] / width
         y = polygon[:, 0, 1] / height
-        for coords in np.dstack((x, y))[0]:
+        for coords in np.stack((x, y), axis=-1):
             out += f" {coords[0]:.5f} {coords[1]:.5f}"
         out += "\n"
 
